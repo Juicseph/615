@@ -1328,6 +1328,12 @@ function switchTab(tab, btn) {
   document.getElementById('tabDepth').style.display       = tab==='depth'       ?'flex':'none';
   document.getElementById('tabCommand').style.display     = tab==='command'     ?'flex':'none';
   document.getElementById('tabWall').style.display        = tab==='wall'        ?'flex':'none';
+  // 3-col layout only on roster tab when a recruit is open
+  const _main = document.querySelector('.main');
+  if (_main) {
+    if (tab === 'roster' && activeRecruit) _main.classList.add('recruit-open');
+    else _main.classList.remove('recruit-open');
+  }
   if (tab==='rosterplan') {
     document.getElementById('tabRosterPlan').style.display = 'flex';
     document.getElementById('tabRosterPlan').style.flexDirection = 'column';
@@ -1822,7 +1828,7 @@ function selectRecruit(name) {
   const r = getRecruits().find(x => x.name === name);
   if (!r) return;
   fetchWeather(r);
-  const url = getPDFUrl(name);
+  const url = getBlobURL(name);
   const gc = document.getElementById('guideContainer');
   gc.style.height = '100%';
   gc.innerHTML = url
