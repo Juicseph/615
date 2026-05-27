@@ -93,11 +93,17 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .tab-btn:hover:not(.active){color:var(--text-secondary);background:var(--recruit-hover)}
 
 /* ── LAYOUT ── */
-.main{display:grid;grid-template-columns:260px 1fr;flex:1;min-height:0;overflow:hidden;background:var(--bg-base)}.main.recruit-open{grid-template-columns:220px 340px 1fr}
+.main{display:grid;grid-template-columns:260px 1fr;flex:1;min-height:0;overflow:hidden;background:var(--bg-base)}
 .main.rp-fullwidth{grid-template-columns:1fr}
 .main.rp-fullwidth .sidebar{display:none}
 .sidebar{background:var(--sidebar-bg);border-right:1px solid var(--border-primary);display:flex;flex-direction:column;overflow:hidden;min-height:0;position:relative;z-index:10}
 .content-area{overflow:hidden;display:flex;flex-direction:column;height:100%}
+#tabRoster{flex-direction:row}
+#tabRoster .welcome{flex:1}
+#editPanel{width:360px;min-width:360px;flex-shrink:0;display:none;flex-direction:column;overflow-y:auto;height:100%;background:#07111f;border-right:1px solid #1a3050}
+#editPanel.visible{display:flex}
+#guideContainer{flex:1;min-width:0;display:none;height:100%}
+#guideContainer.visible{display:flex;flex-direction:column}
 
 /* ── SIDEBAR ── */
 .search-box{padding:10px 13px;border-bottom:1px solid #192e50;background:#060e1c;flex-shrink:0}
@@ -567,7 +573,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 .sch-stat-l{font-size:10px;color:#3a5a80;text-transform:uppercase;letter-spacing:.8px}
 
 /* ── 3-COLUMN RECRUIT VIEW ── */
-.main.recruit-open{grid-template-columns:220px 340px 1fr}
+
 #editPanel{display:none;flex-direction:column;overflow-y:auto;height:100%;background:#07111f;border-right:1px solid #192e50}
 #editPanel.visible{display:flex}
 .ep-header{padding:16px 18px 12px;border-bottom:1px solid #1a3050;flex-shrink:0;background:#060e1c}
@@ -1812,30 +1818,26 @@ function closeGuide() {
 
 function selectRecruit(name) {
   activeRecruit = name;
-  const main = document.querySelector('.main');
-  if (main) main.classList.add('recruit-open');
+
   renderList();
   if (activeTab === 'texts') renderTextSchedule();
 
-  // Show welcome/guide containers
+  // Hide welcome, show panels
   document.getElementById('welcomeMsg').style.display = 'none';
-  document.getElementById('guideContainer').style.display = 'block';
 
-  // Build and show edit panel
+  // Build edit panel
   buildEditPanel(name);
 
-  // Load PDF
+  // Load PDF into guideContainer
   const r = getRecruits().find(x => x.name === name);
   if (!r) return;
-  fetchWeather(r);
   const url = getBlobURL(name);
   const gc = document.getElementById('guideContainer');
-  gc.style.height = '100%';
+  gc.classList.add('visible');
   gc.innerHTML = url
-    ? `<iframe src="${url}" style="width:100%;height:100%;border:none"></iframe>`
-    : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#1e3050;font-size:14px">No PDF guide yet for ${name}.</div>`;
+    ? `<iframe src="${url}" style="width:100%;height:100%;border:none;flex:1"></iframe>`
+    : `<div style="display:flex;align-items:center;justify-content:center;flex:1;color:#1e3050;flex-direction:column;gap:10px"><div style="font-size:14px">No PDF guide yet</div><div style="font-size:11px;color:#1a2a3a">${name}</div></div>`;
 
-  // Show whisper toggle
   const wt = document.getElementById('whisperToggle');
   if (wt) wt.style.display = 'flex';
 }
