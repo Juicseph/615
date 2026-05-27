@@ -99,9 +99,10 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .sidebar{background:var(--sidebar-bg);border-right:1px solid var(--border-primary);display:flex;flex-direction:column;overflow:hidden;min-height:0;position:relative;z-index:10}
 .content-area{overflow:hidden;display:flex;flex-direction:column;height:100%}
 /* tabRoster: column by default (welcome screen), row when recruit open */
-#tabRoster{flex-direction:column}
-#tabRoster.recruit-open{flex-direction:row}
+#tabRoster{display:flex;flex-direction:column}
+#tabRoster.recruit-open{display:flex;flex-direction:row}
 #tabRoster .welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#tabRoster.recruit-open .welcome{display:none}
 #editPanel{width:360px;min-width:360px;max-width:360px;flex-shrink:0;display:none;flex-direction:column;overflow-y:auto;height:100%;background:#07111f;border-right:1px solid #1a3050}
 #editPanel.visible{display:flex}
 #guideContainer{flex:1;min-width:0;height:100%;display:none}
@@ -123,7 +124,7 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .recruit-item.active.guide-border{border-left-color:var(--accent)}
 .r-main{padding:9px 12px;transition:background .12s}
 .r-status-row{padding:0 12px 9px;display:none;flex-direction:column;gap:4px;overflow-y:auto;max-height:340px}
-.recruit-item.active .r-status-row{display:flex}
+.recruit-item.active .r-status-row{display:none}
 .badge{padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700;white-space:nowrap}
 .b-pos{background:#172848;color:#7a9acc}
 .b-hot{background:#280a10;color:#ff6070}
@@ -161,7 +162,7 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 
 /* ── RECRUIT DROPDOWN ── */
 .r-status-row{padding:0 12px 9px;display:none;flex-direction:column;gap:4px;overflow-y:auto;max-height:360px}
-.recruit-item.active .r-status-row{display:flex}
+.recruit-item.active .r-status-row{display:none}
 .r-name{font-size:13px;font-weight:600;color:#ccc4bc;margin-bottom:3px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .r-meta{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:2px}
 .r-club{font-size:9px;color:#243a58}
@@ -613,6 +614,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 .main.recruit-open .r-name{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .main.recruit-open .r-club{font-size:9px}
 .main.recruit-open .r-meta .badge{font-size:8px;padding:1px 4px}
+.hidden{display:none!important}
 </style>
 </head>
 <body>
@@ -1557,92 +1559,6 @@ function renderList() {
             <div class="r-club">${r.club||''}</div>
           </div>
         </div>
-        <div class="r-status-row" style="${bulkMode?'display:none':''}">
-          <div class="field-label">Edit Name</div>
-          <div style="display:flex;gap:5px" id="namewrap_${idKey}">
-            <input type="text" class="ctrl-link ctrl-name-edit" value="${r.name}" placeholder="Full name..." onkeydown="if(event.key==='Enter'){event.preventDefault();saveNameEdit('${nm}',this.value)}" style="color:#e0d8cc;font-weight:600;flex:1">
-            <button onclick="saveNameEdit('${nm}',this.closest('div').querySelector('input').value)" style="padding:5px 10px;background:#172848;border:1px solid #2a4a8c;color:#7a9acc;border-radius:4px;cursor:pointer;font-size:11px;white-space:nowrap;flex-shrink:0">Save</button>
-          </div>
-          <div class="field-label">Edit Club / Program</div>
-          <div style="display:flex;gap:5px">
-            <input type="text" class="ctrl-link" value="${(store.clubOverrides&&store.clubOverrides[r.name])||r.club||''}" placeholder="Club Name (ST)" onkeydown="if(event.key==='Enter'){event.preventDefault();saveClubEdit('${nm}',this.value)}" style="color:#c0b8b0;flex:1">
-            <button onclick="saveClubEdit('${nm}',this.closest('div').querySelector('input').value)" style="padding:5px 10px;background:#172848;border:1px solid #2a4a8c;color:#7a9acc;border-radius:4px;cursor:pointer;font-size:11px;white-space:nowrap;flex-shrink:0">Save</button>
-          </div>
-          <div class="field-label">Interest Level</div>
-          <select class="ctrl-select" onchange="editInterest('${nm}',this.value)">
-            ${['','1','2','3','3.5','4','4-5','5'].map(v=>`<option value="${v}" ${getInterest(r)===v||(!v&&!getInterest(r))?'selected':''}>${v||'— Unknown —'}</option>`).join('')}
-          </select>
-          <div class="field-label">Date of Birth</div>
-          <div style="display:flex;gap:6px;align-items:center">
-            <input type="date" class="ctrl-date" value="${store.dobs&&store.dobs[r.name]||''}" onblur="saveDob('${nm}',this.value)" style="flex:1;color:#c0b8b0">
-            ${store.dobs&&store.dobs[r.name]?`<span class="dob-age-display" style="font-size:11px;color:#5aabff;white-space:nowrap;flex-shrink:0">${calcAge(store.dobs[r.name])}</span>`:''}
-          </div>
-          <div class="field-label">Who is Calling</div>
-          <select class="caller-select" onchange="setCaller('${nm}',this.value)">${callerOpts}</select>
-          <div class="field-label">Position</div>
-          <select class="ctrl-select" onchange="setPos('${nm}',this.value)">
-            <option value="">— Original: ${r.pos||'—'} —</option>${posOpts}
-          </select>
-          <div class="field-label">Call Date</div>
-          <input type="date" class="ctrl-date" value="${cd}" onchange="setCDate('${nm}',this.value)">
-          <div class="field-label">Call Time</div>
-          <input type="text" class="ctrl-time" placeholder="e.g. 10:00 AM, 2:30 PM..." value="${ct}"
-            oninput="setCTimeDebounce('${nm}',this)" onblur="setCTimeFlush('${nm}',this)">
-          <div class="field-label">Highlight Reel</div>
-          <input type="text" class="ctrl-link" placeholder="Hudl or YouTube link..." value="${hudl}"
-            oninput="setHudl('${nm}',this.value)">
-          ${hudl?`<a href="${hudl}" target="_blank" class="hudl-btn">&#127909; Open Highlight Reel</a>`:''}
-          <div class="field-label">Status</div>
-          <select class="ctrl-select" onchange="setSt('${nm}',this.value)">${stOpts}</select>
-          <div class="field-label" style="margin-top:6px">Log Outcome</div>
-          <div style="display:flex;gap:5px;margin-bottom:2px">
-            <button class="ob-btn ob-connected" style="flex:1;padding:6px 4px;font-size:10px" onclick="logOutcome_named('${nm}','connected')">&#10003; Connected</button>
-            <button class="ob-btn ob-noanswer" style="flex:1;padding:6px 4px;font-size:10px" onclick="logOutcome_named('${nm}','noanswer')">&#128683; No Answer</button>
-            <button class="ob-btn ob-voicemail" style="flex:1;padding:6px 4px;font-size:10px" onclick="logOutcome_named('${nm}','voicemail')">&#128235; Voicemail</button>
-          </div>
-          <div id="oblog_${idKey}" style="font-size:10px;color:#2a5a30;min-height:14px;margin-bottom:2px"></div>
-          <div class="field-label">Notes</div>
-          <div class="notes-log" id="notelog_${idKey}">${renderNoteLog(r.name)}</div>
-          <div class="note-entry-row">
-            <select class="note-author-sel" id="noteauthor_${idKey}">
-              <option value="${store.callers[r.name]||syncRole||'Coach'}">${store.callers[r.name]||syncRole||'Coach'}</option>
-              ${['OJ','Leisa','Jerome','Kelsey'].filter(x=>x!==(store.callers[r.name]||syncRole)).map(x=>`<option value="${x}">${x}</option>`).join('')}
-            </select>
-            <textarea class="ctrl-notes note-entry-text" id="notetext_${idKey}" placeholder="Add a note..." rows="2"></textarea>
-          </div>
-          <button class="note-add-btn" onclick="addNote('${nm}','${idKey}')">+ Add Note</button>
-          <label class="upload-label${store.customPDFs[r.name]?' done':''}" id="uplabel_${idKey}">
-            <input type="file" class="upload-input" accept=".pdf" onchange="uploadPDF('${nm}',this)">
-            ${store.customPDFs[r.name]?'&#10003; Guide Uploaded':'&#8593; Upload Guide PDF'}
-          </label>
-          <div class="text-section">
-            <div class="text-section-hdr">&#128172; Schedule Text to Recruit</div>
-            <textarea class="ctrl-text-msg" placeholder="Type the text message to send..." oninput="setTextMsg('${nm}',this.value)">${store.textMsgs&&store.textMsgs[r.name]||''}</textarea>
-            <div class="text-row">
-              <input type="date" class="ctrl-date" placeholder="Date to send" value="${store.textDates&&store.textDates[r.name]||''}" onchange="setTextDate('${nm}',this.value)" title="Date to send text">
-              <input type="text" class="ctrl-time" placeholder="Time (e.g. 9:00 AM)" value="${store.textTimes&&store.textTimes[r.name]||''}" oninput="setTextTime('${nm}',this)" onblur="setTextTimeFlush('${nm}',this)" title="Time to send text">
-            </div>
-            <button class="send-text-btn${store.textSent&&store.textSent[r.name]?' sent':''}" id="sendbtn_${idKey}" onclick="markTextSent('${nm}')">
-              ${store.textSent&&store.textSent[r.name]?'&#10003; Text Marked Sent':'&#128172; Mark as Sent'}
-            </button>
-          </div>
-          <div class="field-label">&#127757; Recruit Map Location</div>
-          <div style="display:flex;gap:5px;align-items:center">
-            <input type="text" class="ctrl-link" id="locinput_${idKey}" placeholder="Address, city, or lat,lon" value="${(store.locations&&store.locations[r.name])||''}" onkeydown="if(event.key==='Enter'){event.preventDefault();saveLocation('${nm}',this)}" style="color:#c0d8b0;flex:1">
-            <button onclick="saveLocation('${nm}',document.getElementById('locinput_${idKey}'))" style="padding:5px 10px;background:#071428;border:1px solid #1a4a6c;border-radius:4px;color:#5aabff;cursor:pointer;font-size:11px;white-space:nowrap;flex-shrink:0">Save</button>
-            <button onclick="clearLocation('${nm}',document.getElementById('locinput_${idKey}'))" title="Reset to state default" style="padding:5px 8px;background:#0d1a2e;border:1px solid #1e3560;border-radius:4px;color:#3a5a7c;cursor:pointer;font-size:10px;white-space:nowrap;flex-shrink:0">Reset</button>
-          </div>
-          <div id="locstatus_${idKey}" style="font-size:9px;color:#3a9a6c;height:12px;margin-top:1px"></div>
-          <div class="field-label" style="margin-top:4px">&#127939; Club Map Location</div>
-          <div style="display:flex;gap:5px;align-items:center">
-            <input type="text" class="ctrl-link" id="clublocinput_${idKey}" placeholder="Address, city, or lat,lon" value="${(store.clubLocations&&store.clubLocations[r.club])||''}" onkeydown="if(event.key==='Enter'){event.preventDefault();saveClubLocation('${nm}',this)}" style="color:#c0d8b0;flex:1">
-            <button onclick="saveClubLocation('${nm}',document.getElementById('clublocinput_${idKey}'))" style="padding:5px 10px;background:#071428;border:1px solid #1a4a6c;border-radius:4px;color:#5aabff;cursor:pointer;font-size:11px;white-space:nowrap;flex-shrink:0">Save</button>
-            <button onclick="clearClubLocation('${nm}',document.getElementById('clublocinput_${idKey}'))" style="padding:5px 8px;background:#0d1a2e;border:1px solid #1e3560;border-radius:4px;color:#3a5a7c;cursor:pointer;font-size:10px;white-space:nowrap;flex-shrink:0">Reset</button>
-          </div>
-          <div id="clublocstatus_${idKey}" style="font-size:9px;color:#3a9a6c;height:12px;margin-top:1px"></div>
-          <button class="delete-btn" onclick="deleteRecruit('${nm}')">&#128465; Remove from roster</button>
-          ${getMajorRow(r)}
-        </div>
       </div>`;    });
   });
 
@@ -1812,7 +1728,7 @@ function closeGuide() {
   activeRecruit = null;
   document.getElementById('tabRoster').classList.remove('recruit-open');
   renderList();
-  document.getElementById('welcomeMsg').style.display = 'flex';
+  const _wm = document.getElementById('welcomeMsg'); if(_wm){_wm.style.display='flex';_wm.classList.remove('hidden');}
   document.getElementById('guideContainer').style.display = 'none';
   document.getElementById('whisperToggle').style.display = 'none';
   if (document.getElementById('whisperPanel').classList.contains('open')) toggleWhisper();
@@ -1828,7 +1744,7 @@ function selectRecruit(name) {
 
   // Hide welcome screen
   const wm = document.getElementById('welcomeMsg');
-  if (wm) wm.style.display = 'none';
+  if (wm) { wm.style.display = 'none'; wm.classList.add('hidden'); }
 
   renderList();
   if (activeTab === 'texts') renderTextSchedule();
@@ -2213,7 +2129,7 @@ function deleteRecruit(name) {
   saveStore();
   if (activeRecruit === name) {
     activeRecruit = null;
-    document.getElementById('welcomeMsg').style.display = 'flex';
+    const _wm = document.getElementById('welcomeMsg'); if(_wm){_wm.style.display='flex';_wm.classList.remove('hidden');}
     document.getElementById('guideContainer').style.display = 'none';
     const wt = document.getElementById('whisperToggle');
     if (wt) wt.style.display = 'none';
