@@ -93,20 +93,22 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .tab-btn:hover:not(.active){color:var(--text-secondary);background:var(--recruit-hover)}
 
 /* ── LAYOUT ── */
-.main{display:grid;grid-template-columns:260px 1fr;flex:1;min-height:0;overflow:hidden;background:var(--bg-base)}
+.main{display:grid;grid-template-columns:260px 0 1fr;flex:1;min-height:0;overflow:hidden;background:var(--bg-base)}
+.main.recruit-open{grid-template-columns:260px 360px 1fr}
 .main.rp-fullwidth{grid-template-columns:1fr}
 .main.rp-fullwidth .sidebar{display:none}
 .sidebar{background:var(--sidebar-bg);border-right:1px solid var(--border-primary);display:flex;flex-direction:column;overflow:hidden;min-height:0;position:relative;z-index:10}
-.content-area{overflow:hidden;display:flex;flex-direction:column;height:100%}
+.content-area{overflow:hidden;display:flex;flex-direction:column;height:100%;min-height:0}
 /* tabRoster: column by default (welcome screen), row when recruit open */
 #tabRoster{display:flex;flex-direction:column}
-#tabRoster.recruit-open{display:flex;flex-direction:row}
+#tabRoster.recruit-open{flex-direction:column}
 #tabRoster .welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
 #tabRoster.recruit-open .welcome{display:none}
-#editPanel{width:360px;min-width:360px;max-width:360px;flex-shrink:0;display:none;flex-direction:column;overflow-y:auto;height:100%;background:#07111f;border-right:1px solid #1a3050}
-#editPanel.visible{display:flex}
-#guideContainer{flex:1;min-width:0;height:100%;display:none}
-#guideContainer.visible{display:block}
+
+#editPanel{display:none;flex-direction:column;overflow-y:auto;background:#07111f;border-right:1px solid #1a3050;overflow:hidden}
+#editPanel.visible{display:flex;flex-direction:column;overflow-y:auto}
+#guideContainer{display:none}
+#guideContainer.visible{display:block;height:100%;width:100%}
 
 /* ── SIDEBAR ── */
 .search-box{padding:10px 13px;border-bottom:1px solid #192e50;background:#060e1c;flex-shrink:0}
@@ -578,7 +580,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 /* ── 3-COLUMN RECRUIT VIEW ── */
 
 #editPanel{display:none;flex-direction:column;overflow-y:auto;height:100%;background:#07111f;border-right:1px solid #192e50}
-#editPanel.visible{display:flex}
+#editPanel.visible{display:flex;flex-direction:column;overflow-y:auto}
 .ep-header{padding:16px 18px 12px;border-bottom:1px solid #1a3050;flex-shrink:0;background:#060e1c}
 .ep-name{font-family:"Oswald",sans-serif;font-size:22px;font-weight:700;color:#fff;line-height:1.1;margin-bottom:2px}
 .ep-pos-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
@@ -750,6 +752,9 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
     </div>
   </div>
 
+  <!-- EDIT PANEL (3rd grid column, shown when recruit selected) -->
+  <div id="editPanel"></div>
+
   <!-- ROSTER TAB CONTENT -->
   <div class="content-area" id="tabRoster">
     <div class="welcome" id="welcomeMsg">
@@ -763,8 +768,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
         <div class="cd-go">&#128293; IT'S CALLING DAY — LET'S GO</div>
       </div>
     </div>
-    <div id="editPanel" style="display:none;height:100%;overflow-y:auto;background:#07111f;border-right:1px solid #192e50;flex-direction:column"></div>
-    <div id="guideContainer" style="display:none;height:100%"></div>
+    <div id="guideContainer"></div>
   </div>
 
   <!-- SCHEDULE TAB CONTENT -->
@@ -1739,8 +1743,8 @@ function selectRecruit(name) {
   activeRecruit = name;
 
   // Switch tabRoster to 3-col row layout
-  const tabR = document.getElementById('tabRoster');
-  if (tabR) tabR.classList.add('recruit-open');
+  document.querySelector('.main').classList.add('recruit-open');
+  document.getElementById('tabRoster').classList.add('recruit-open');
 
   // Hide welcome screen
   const wm = document.getElementById('welcomeMsg');
