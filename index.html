@@ -1621,13 +1621,16 @@ function buildEditPanel(name) {
             ${interest ? `<span style="color:${interestColor};font-size:13px;font-weight:700">★ ${interest}</span>` : ''}
             ${st ? `<span class="badge ${sc.cls}" style="font-size:9px">${sc.label}</span>` : ''}
             ${r.hot ? '<span style="font-size:13px">🔥</span>' : ''}
+            ${hudl ? `<a href="${hudl}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:rgba(90,171,255,.1);border:1px solid rgba(90,171,255,.25);border-radius:3px;color:#5aabff;text-decoration:none;font-size:10px;font-weight:700">🎥 Film</a>` : ''}
           </div>
           <div style="font-size:10px;color:#3a5a7c;margin-top:5px">${r.club||''}</div>
         </div>
         <button onclick="closeGuide()" style="background:none;border:none;color:#3a5a7c;cursor:pointer;font-size:18px;padding:0;line-height:1;flex-shrink:0">✕</button>
       </div>
-      <!-- Phone -->
-      ${phone ? `<a href="tel:${phone.replace(/[^0-9+]/g,'')}" class="ep-phone-link" style="margin-top:10px;display:flex">📞 ${phone}</a>` : ''}
+      <!-- Phone + Hudl row -->
+      <div style="display:flex;gap:6px;margin-top:10px;align-items:center">
+        ${phone ? `<a href="tel:${phone.replace(/[^0-9+]/g,'')}" class="ep-phone-link" style="flex:1">📞 ${phone}</a>` : ''}
+      </div>
       ${email ? `<div style="font-size:10px;color:#3a5a7c;margin-top:4px">${email}</div>` : ''}
       <!-- Call time -->
       ${callTime||callDate ? `<div style="margin-top:8px;padding:6px 10px;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.15);border-radius:5px;font-size:11px;color:#f5c842">🕐 ${callDate?fmtDate(callDate)+' · ':''}${callTime} PST${tzConv?` · <span style="color:#90d0ff">${tzConv.time} their time</span>`:''}</div>` : ''}
@@ -1681,69 +1684,71 @@ function buildEditPanel(name) {
     </div>
 
     <!-- NOTES -->
-    <div class="ep-section" style="flex:1;display:flex;flex-direction:column;min-height:0">
-      <div class="ep-section-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="toggleNotesExpand('${idKey}')">
-        <span>Notes</span><span style="font-size:10px;color:#2a4a6c">⤢ Expand</span>
-      </div>
-      <div class="ep-note-log" id="epnlog_${idKey}" style="max-height:200px;min-height:80px">${renderNoteLog(name)}</div>
-      <div class="ep-field">
-        <select class="ep-note-author" id="epauthor_${idKey}">
+    <div class="ep-section">
+      <div class="ep-section-title">Notes</div>
+      <div class="ep-note-log" id="epnlog_${idKey}" style="max-height:180px;min-height:60px">${renderNoteLog(name)}</div>
+      <div style="display:flex;gap:5px;margin-top:5px">
+        <select class="ep-note-author" id="epauthor_${idKey}" style="flex-shrink:0;width:80px">
           ${['OJ','Leisa','Jerome','Kelsey'].map(x=>`<option value="${x}" ${caller===x?'selected':''}>${x}</option>`).join('')}
           <option value="Coach" ${!caller?'selected':''}>Coach</option>
         </select>
-        <textarea class="ep-note-text" id="epntext_${idKey}" placeholder="Write a note..."></textarea>
-        <button class="ep-note-add" onclick="addNoteFromPanel('${nm}','${idKey}')">+ Add Note</button>
+        <textarea class="ep-note-text" id="epntext_${idKey}" placeholder="Write a note..." style="flex:1;min-height:36px;max-height:80px"></textarea>
       </div>
+      <button class="ep-note-add" onclick="addNoteFromPanel('${nm}','${idKey}')" style="margin-top:4px">+ Add Note</button>
     </div>
 
-    <!-- SCHEDULING -->
+    <!-- SCHEDULE CALL -->
     <div class="ep-section">
-      <div class="ep-section-title">Schedule Call</div>
-      <div class="ep-field">
-        <div class="ep-label">Call Date</div>
-        <input class="ep-input" type="date" value="${callDate}" onchange="setCallDate('${nm}',this.value)">
-      </div>
-      <div class="ep-field">
-        <div class="ep-label">Call Time (PST)</div>
-        <input class="ep-input" type="text" placeholder="e.g. 10:00 AM" value="${callTime}" onblur="setCallTime('${nm}',this.value)">
+      <div class="ep-section-title">📅 Schedule Call</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div>
+          <div class="ep-label">Date</div>
+          <input class="ep-input" type="date" value="${callDate}" onchange="setCallDate('${nm}',this.value)">
+        </div>
+        <div>
+          <div class="ep-label">Time (PST)</div>
+          <input class="ep-input" type="text" placeholder="10:00 AM" value="${callTime}" onblur="setCallTime('${nm}',this.value)">
+        </div>
       </div>
     </div>
 
     <!-- SCHEDULE TEXT -->
     <div class="ep-section">
-      <div class="ep-section-title">Schedule Text</div>
-      <div class="ep-field">
-        <div class="ep-label">Message</div>
-        <textarea class="ep-input" rows="3" style="resize:none" placeholder="Text message to send..." oninput="setTextMsg('${nm}',this.value)">${store.textMsgs&&store.textMsgs[name]||''}</textarea>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <div class="ep-field">
+      <div class="ep-section-title">💬 Schedule Text</div>
+      <textarea class="ep-input" rows="2" style="resize:none;margin-bottom:6px" placeholder="Text message to send..." oninput="setTextMsg('${nm}',this.value)">${store.textMsgs&&store.textMsgs[name]||''}</textarea>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div>
           <div class="ep-label">Date</div>
           <input class="ep-input" type="date" value="${store.textDates&&store.textDates[name]||''}" onchange="setTextDate('${nm}',this.value)">
         </div>
-        <div class="ep-field">
+        <div>
           <div class="ep-label">Time</div>
           <input class="ep-input" type="text" placeholder="9:00 AM" value="${store.textTimes&&store.textTimes[name]||''}" onblur="setTextTimeFlush('${nm}',this)" oninput="setTextTime('${nm}',this)">
         </div>
       </div>
-      <button class="ep-note-add${store.textSent&&store.textSent[name]?' sent':''}" onclick="markTextSent('${nm}')" style="margin-top:4px;${store.textSent&&store.textSent[name]?'color:#4adf7a;border-color:#1a5a28':''}">${store.textSent&&store.textSent[name]?'✓ Text Sent':'Mark Text as Sent'}</button>
+      <button class="ep-note-add${store.textSent&&store.textSent[name]?' sent':''}" onclick="markTextSent('${nm}')" style="${store.textSent&&store.textSent[name]?'color:#4adf7a;border-color:#1a5a28':''}">${store.textSent&&store.textSent[name]?'✓ Text Sent':'Mark Text as Sent'}</button>
     </div>
 
-    <!-- MAP LOCATION -->
+    <!-- CLUB / LOCATION -->
     <div class="ep-section">
-      <div class="ep-section-title">Map Location Override</div>
+      <div class="ep-section-title">📍 Location</div>
       <div class="ep-field">
-        <div class="ep-label">City, State or lat,lon</div>
+        <div class="ep-label">Club / Program</div>
+        <input class="ep-input" type="text" placeholder="Club name (ST)" value="${(store.clubOverrides&&store.clubOverrides[name])||r.club||''}" onblur="setClub('${nm}',this.value)">
+      </div>
+      <div class="ep-field">
+        <div class="ep-label">Club Address <span style="color:#1e3050;font-weight:400">(updates map pin)</span></div>
         <div style="display:flex;gap:5px">
-          <input class="ep-input" style="flex:1;color:#c0d8b0" type="text" placeholder="Miami, FL or 25.77,-80.19" value="${store.locations&&store.locations[name]||''}" oninput="setLocation('${nm}',this.value)" onblur="setLocationFlush('${nm}',this.value)">
-          <button onclick="clearLocation('${nm}')" style="padding:6px 10px;background:#0d1a2e;border:1px solid #1e3560;border-radius:4px;color:#3a5a7c;cursor:pointer;font-size:10px;white-space:nowrap;flex-shrink:0">Reset</button>
+          <input class="ep-input" style="flex:1;color:#c0d8b0" type="text" placeholder="123 Main St, City ST · City, ST · lat,lon" value="${store.locations&&store.locations[name]||''}" oninput="setLocation('${nm}',this.value)" onblur="setLocationFlush('${nm}',this.value)">
+          <button onclick="clearLocation('${nm}')" style="padding:6px 8px;background:#0d1a2e;border:1px solid #1e3560;border-radius:4px;color:#3a5a7c;cursor:pointer;font-size:10px;white-space:nowrap;flex-shrink:0">✕</button>
         </div>
+        ${store.locations&&store.locations[name] ? `<div style="font-size:9px;color:#3a7a5a;margin-top:3px">📍 Custom pin set — shows on map</div>` : `<div style="font-size:9px;color:#1e3050;margin-top:3px">Using state center by default</div>`}
       </div>
     </div>
 
-    <!-- HIGHLIGHT REEL -->
+    <!-- LINKS -->
     <div class="ep-section">
-      <div class="ep-section-title">Links</div>
+      <div class="ep-section-title">🎥 Links</div>
       <div class="ep-field">
         <div class="ep-label">Highlight Reel URL</div>
         <input class="ep-input" type="text" placeholder="https://hudl.com/..." value="${hudl}" onblur="setHudl('${nm}',this.value)">
@@ -1752,8 +1757,9 @@ function buildEditPanel(name) {
     </div>
 
     <!-- DANGER -->
-    <div class="ep-section">
+    <div class="ep-section" style="border-bottom:none">
       <button onclick="deleteRecruit('${nm}')" style="width:100%;padding:7px;background:#0d0810;border:1px solid #3a1020;border-radius:5px;color:#ff7088;font-size:11px;font-weight:700;cursor:pointer">🗑 Remove from Roster</button>
+    </div>
     </div>
   `;
 
@@ -1764,19 +1770,13 @@ function buildEditPanel(name) {
 
 function toggleNotesExpand(idKey) {
   const log = document.getElementById('epnlog_' + idKey);
+  const lbl = document.getElementById('epnexpand_' + idKey);
   if (!log) return;
   const isExpanded = log.dataset.expanded === '1';
-  if (isExpanded) {
-    log.style.maxHeight = '200px';
-    log.dataset.expanded = '0';
-    const btn = log.previousElementSibling.querySelector('span:last-child');
-    if (btn) btn.textContent = '⤢ Expand';
-  } else {
-    log.style.maxHeight = '600px';
-    log.dataset.expanded = '1';
-    const btn = log.previousElementSibling.querySelector('span:last-child');
-    if (btn) btn.textContent = '⤡ Collapse';
-  }
+  log.style.maxHeight = isExpanded ? '160px' : '500px';
+  log.dataset.expanded = isExpanded ? '0' : '1';
+  if (lbl) lbl.textContent = isExpanded ? '⤢ Expand' : '⤡ Collapse';
+  if (!isExpanded) setTimeout(() => log.scrollTop = log.scrollHeight, 50);
 }
 
 function addNoteFromPanel(name, idKey) {
@@ -2175,6 +2175,13 @@ function editInterest(name, val) {
   }
   updateCounts();
 }
+function setClub(name, val) {
+  if (!store.clubOverrides) store.clubOverrides = {};
+  store.clubOverrides[name] = val.trim();
+  saveStore();
+  reRender(name);
+}
+
 function setHudl(name,val) {
   store.hudlLinks[name] = val.trim();
   saveStore();
