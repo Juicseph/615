@@ -105,7 +105,7 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 #tabRoster .welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
 #tabRoster.recruit-open .welcome{display:none}
 
-#editPanel{display:none;flex-direction:column;overflow-y:auto;background:#07111f;border-right:1px solid #1a3050;overflow:hidden}
+#editPanel{display:none;flex-direction:column;overflow-y:auto;background:#07111f;border-right:1px solid #1a3050}
 #editPanel.visible{display:flex;flex-direction:column;overflow-y:auto}
 #guideContainer{display:none}
 #guideContainer.visible{display:block;height:100%;width:100%}
@@ -1682,8 +1682,10 @@ function buildEditPanel(name) {
 
     <!-- NOTES -->
     <div class="ep-section" style="flex:1;display:flex;flex-direction:column;min-height:0">
-      <div class="ep-section-title">Notes</div>
-      <div class="ep-note-log" id="epnlog_${idKey}">${renderNoteLog(name)}</div>
+      <div class="ep-section-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="toggleNotesExpand('${idKey}')">
+        <span>Notes</span><span style="font-size:10px;color:#2a4a6c">⤢ Expand</span>
+      </div>
+      <div class="ep-note-log" id="epnlog_${idKey}" style="max-height:200px;min-height:80px">${renderNoteLog(name)}</div>
       <div class="ep-field">
         <select class="ep-note-author" id="epauthor_${idKey}">
           ${['OJ','Leisa','Jerome','Kelsey'].map(x=>`<option value="${x}" ${caller===x?'selected':''}>${x}</option>`).join('')}
@@ -1693,9 +1695,88 @@ function buildEditPanel(name) {
         <button class="ep-note-add" onclick="addNoteFromPanel('${nm}','${idKey}')">+ Add Note</button>
       </div>
     </div>
+
+    <!-- SCHEDULING -->
+    <div class="ep-section">
+      <div class="ep-section-title">Schedule Call</div>
+      <div class="ep-field">
+        <div class="ep-label">Call Date</div>
+        <input class="ep-input" type="date" value="${callDate}" onchange="setCallDate('${nm}',this.value)">
+      </div>
+      <div class="ep-field">
+        <div class="ep-label">Call Time (PST)</div>
+        <input class="ep-input" type="text" placeholder="e.g. 10:00 AM" value="${callTime}" onblur="setCallTime('${nm}',this.value)">
+      </div>
+    </div>
+
+    <!-- SCHEDULE TEXT -->
+    <div class="ep-section">
+      <div class="ep-section-title">Schedule Text</div>
+      <div class="ep-field">
+        <div class="ep-label">Message</div>
+        <textarea class="ep-input" rows="3" style="resize:none" placeholder="Text message to send..." oninput="setTextMsg('${nm}',this.value)">${store.textMsgs&&store.textMsgs[name]||''}</textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div class="ep-field">
+          <div class="ep-label">Date</div>
+          <input class="ep-input" type="date" value="${store.textDates&&store.textDates[name]||''}" onchange="setTextDate('${nm}',this.value)">
+        </div>
+        <div class="ep-field">
+          <div class="ep-label">Time</div>
+          <input class="ep-input" type="text" placeholder="9:00 AM" value="${store.textTimes&&store.textTimes[name]||''}" onblur="setTextTimeFlush('${nm}',this)" oninput="setTextTime('${nm}',this)">
+        </div>
+      </div>
+      <button class="ep-note-add${store.textSent&&store.textSent[name]?' sent':''}" onclick="markTextSent('${nm}')" style="margin-top:4px;${store.textSent&&store.textSent[name]?'color:#4adf7a;border-color:#1a5a28':''}">${store.textSent&&store.textSent[name]?'✓ Text Sent':'Mark Text as Sent'}</button>
+    </div>
+
+    <!-- MAP LOCATION -->
+    <div class="ep-section">
+      <div class="ep-section-title">Map Location Override</div>
+      <div class="ep-field">
+        <div class="ep-label">City, State or lat,lon</div>
+        <div style="display:flex;gap:5px">
+          <input class="ep-input" style="flex:1;color:#c0d8b0" type="text" placeholder="Miami, FL or 25.77,-80.19" value="${store.locations&&store.locations[name]||''}" oninput="setLocation('${nm}',this.value)" onblur="setLocationFlush('${nm}',this.value)">
+          <button onclick="clearLocation('${nm}')" style="padding:6px 10px;background:#0d1a2e;border:1px solid #1e3560;border-radius:4px;color:#3a5a7c;cursor:pointer;font-size:10px;white-space:nowrap;flex-shrink:0">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HIGHLIGHT REEL -->
+    <div class="ep-section">
+      <div class="ep-section-title">Links</div>
+      <div class="ep-field">
+        <div class="ep-label">Highlight Reel URL</div>
+        <input class="ep-input" type="text" placeholder="https://hudl.com/..." value="${hudl}" onblur="setHudl('${nm}',this.value)">
+      </div>
+      ${hudl ? `<a href="${hudl}" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:rgba(90,171,255,.06);border:1px solid rgba(90,171,255,.15);border-radius:5px;color:#5aabff;text-decoration:none;font-size:11px;font-weight:600;margin-top:4px">🎥 Open Highlight Reel</a>` : ''}
+    </div>
+
+    <!-- DANGER -->
+    <div class="ep-section">
+      <button onclick="deleteRecruit('${nm}')" style="width:100%;padding:7px;background:#0d0810;border:1px solid #3a1020;border-radius:5px;color:#ff7088;font-size:11px;font-weight:700;cursor:pointer">🗑 Remove from Roster</button>
+    </div>
   `;
 
+  ep.style.display = 'flex';
   ep.classList.add('visible');
+}
+
+
+function toggleNotesExpand(idKey) {
+  const log = document.getElementById('epnlog_' + idKey);
+  if (!log) return;
+  const isExpanded = log.dataset.expanded === '1';
+  if (isExpanded) {
+    log.style.maxHeight = '200px';
+    log.dataset.expanded = '0';
+    const btn = log.previousElementSibling.querySelector('span:last-child');
+    if (btn) btn.textContent = '⤢ Expand';
+  } else {
+    log.style.maxHeight = '600px';
+    log.dataset.expanded = '1';
+    const btn = log.previousElementSibling.querySelector('span:last-child');
+    if (btn) btn.textContent = '⤡ Collapse';
+  }
 }
 
 function addNoteFromPanel(name, idKey) {
@@ -1730,44 +1811,53 @@ function setCallDate(name, val) {
 // ─────────────────────────────────────────────────────────────────
 function closeGuide() {
   activeRecruit = null;
+  document.querySelector('.main').classList.remove('recruit-open');
   document.getElementById('tabRoster').classList.remove('recruit-open');
+  // Clear edit panel
+  const ep = document.getElementById('editPanel');
+  if (ep) { ep.classList.remove('visible'); ep.innerHTML = ''; ep.style.display = 'none'; }
+  // Clear guide
+  const gc = document.getElementById('guideContainer');
+  if (gc) { gc.classList.remove('visible'); gc.innerHTML = ''; gc.style.display = 'none'; }
+  // Show welcome
+  const wm = document.getElementById('welcomeMsg');
+  if (wm) { wm.style.display = 'flex'; wm.classList.remove('hidden'); }
   renderList();
-  const _wm = document.getElementById('welcomeMsg'); if(_wm){_wm.style.display='flex';_wm.classList.remove('hidden');}
-  document.getElementById('guideContainer').style.display = 'none';
-  document.getElementById('whisperToggle').style.display = 'none';
-  if (document.getElementById('whisperPanel').classList.contains('open')) toggleWhisper();
-  stopHeartbeat();
+  const wt = document.getElementById('whisperToggle');
+  if (wt) wt.style.display = 'none';
+  const wp = document.getElementById('whisperPanel');
+  if (wp && wp.classList.contains('open')) toggleWhisper();
+  if (typeof stopHeartbeat === 'function') stopHeartbeat();
 }
 
 function selectRecruit(name) {
   activeRecruit = name;
 
-  // Switch tabRoster to 3-col row layout
+  // Expand 3-col grid
   document.querySelector('.main').classList.add('recruit-open');
   document.getElementById('tabRoster').classList.add('recruit-open');
 
-  // Hide welcome screen
+  // Hide welcome
   const wm = document.getElementById('welcomeMsg');
   if (wm) { wm.style.display = 'none'; wm.classList.add('hidden'); }
 
   renderList();
   if (activeTab === 'texts') renderTextSchedule();
 
-  // Build and show edit panel
+  // Build edit panel
   buildEditPanel(name);
 
-  // Load PDF into guideContainer
+  // Load PDF
   const r = getRecruits().find(x => x.name === name);
   if (!r) return;
   const url = getBlobURL(name);
   const gc = document.getElementById('guideContainer');
+  gc.style.display = 'block';
   gc.classList.add('visible');
+  gc.style.height = '100%';
   gc.innerHTML = url
-    ? `<iframe src="${url}" style="width:100%;height:100%;border:none"></iframe>`
-    : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#1e3050;flex-direction:column;gap:10px">
-        <div style="font-size:14px">No PDF guide yet for ${name}</div>
-        <div style="font-size:11px;color:#1a2a3a">Upload one in the edit panel</div>
-      </div>`;
+    ? `<iframe src="${url}" style="width:100%;height:100%;border:none;display:block"></iframe>`
+    : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#1e3050;flex-direction:column;gap:10px"><div style="font-size:14px">No PDF guide yet</div></div>`;
 
   const wt = document.getElementById('whisperToggle');
   if (wt) wt.style.display = 'flex';
