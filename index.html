@@ -93,7 +93,7 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .tab-btn:hover:not(.active){color:var(--text-secondary);background:var(--recruit-hover)}
 
 /* ── LAYOUT ── */
-.main{display:grid;grid-template-columns:330px 1fr;flex:1;min-height:0;overflow:hidden;background:var(--bg-base)}
+.main{display:grid;grid-template-columns:260px 1fr;flex:1;min-height:0;overflow:hidden;background:var(--bg-base)}.main.recruit-open{grid-template-columns:220px 340px 1fr}
 .main.rp-fullwidth{grid-template-columns:1fr}
 .main.rp-fullwidth .sidebar{display:none}
 .sidebar{background:var(--sidebar-bg);border-right:1px solid var(--border-primary);display:flex;flex-direction:column;overflow:hidden;min-height:0;position:relative;z-index:10}
@@ -565,6 +565,46 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 .sch-stat{text-align:center}
 .sch-stat-n{font-family:"Oswald",sans-serif;font-size:22px;font-weight:700;color:#e84060}
 .sch-stat-l{font-size:10px;color:#3a5a80;text-transform:uppercase;letter-spacing:.8px}
+
+/* ── 3-COLUMN RECRUIT VIEW ── */
+.main.recruit-open{grid-template-columns:220px 340px 1fr}
+#editPanel{display:none;flex-direction:column;overflow-y:auto;height:100%;background:#07111f;border-right:1px solid #192e50}
+#editPanel.visible{display:flex}
+.ep-header{padding:16px 18px 12px;border-bottom:1px solid #1a3050;flex-shrink:0;background:#060e1c}
+.ep-name{font-family:"Oswald",sans-serif;font-size:22px;font-weight:700;color:#fff;line-height:1.1;margin-bottom:2px}
+.ep-pos-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
+.ep-section{padding:12px 16px;border-bottom:1px solid #0f1e38}
+.ep-section-title{font-size:9px;font-weight:700;color:#3a5a7c;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.ep-field{margin-bottom:8px}
+.ep-label{font-size:9px;color:#3a5a7c;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
+.ep-input{width:100%;background:#0a1628;border:1px solid #1a3050;color:#e0d8cc;padding:7px 10px;border-radius:5px;font-size:12px;font-family:"Source Sans 3",sans-serif}
+.ep-input:focus{outline:none;border-color:#3a5a9c}
+.ep-select{width:100%;background:#0a1628;border:1px solid #1a3050;color:#e0d8cc;padding:7px 10px;border-radius:5px;font-size:12px;font-family:"Source Sans 3",sans-serif;cursor:pointer}
+.ep-select:focus{outline:none;border-color:#3a5a9c}
+.ep-phone-link{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#5aabff;text-decoration:none;padding:7px 10px;background:#050e1c;border:1px solid #1a3050;border-radius:5px}
+.ep-phone-link:hover{background:#0a1828;border-color:#2a5a9c}
+.ep-outcome-row{display:flex;gap:6px;margin-top:4px}
+.ep-outcome-btn{flex:1;padding:8px 4px;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:"Source Sans 3",sans-serif;border:1px solid;text-align:center;transition:all .15s}
+.ep-outcome-btn.connected{background:#041008;border-color:#2a7a3a;color:#4adf7a}
+.ep-outcome-btn.connected:hover{background:#072010}
+.ep-outcome-btn.noanswer{background:#100820;border-color:#5a3a8a;color:#c080ff}
+.ep-outcome-btn.noanswer:hover{background:#180a2a}
+.ep-outcome-btn.voicemail{background:#100800;border-color:#7a5a20;color:#f5c842}
+.ep-outcome-btn.voicemail:hover{background:#1a1000}
+.ep-note-log{background:#050e1c;border:1px solid #0f1e38;border-radius:5px;padding:6px 8px;max-height:140px;overflow-y:auto;margin-bottom:6px;min-height:36px}
+.ep-note-author{background:#0a1628;border:1px solid #1a3050;color:#ffcc60;padding:5px 8px;border-radius:4px;font-size:11px;font-family:"Source Sans 3",sans-serif;margin-bottom:5px;width:100%}
+.ep-note-author:focus{outline:none;border-color:#5a4a20}
+.ep-note-text{width:100%;background:#0a1628;border:1px solid #1a3050;color:#c0d8e8;padding:6px 8px;border-radius:4px;font-size:11px;font-family:"Source Sans 3",sans-serif;resize:none;min-height:52px}
+.ep-note-text:focus{outline:none;border-color:#3a5a9c}
+.ep-note-add{width:100%;padding:6px;background:#071428;border:1px solid #1e3560;border-radius:4px;color:#5aabff;font-size:11px;font-weight:700;cursor:pointer;font-family:"Source Sans 3",sans-serif;margin-top:4px}
+.ep-note-add:hover{background:#0a1e40;border-color:#3a5a9c}
+.ep-close-btn{width:100%;padding:7px;background:#0d0810;border:1px solid #3a1020;border-radius:5px;color:#ff7088;font-size:11px;font-weight:700;cursor:pointer;font-family:"Source Sans 3",sans-serif;margin-top:auto;flex-shrink:0}
+.ep-close-btn:hover{background:#180a14}
+/* Slim sidebar when recruit open */
+.main.recruit-open .recruit-item .r-status-row{display:none}
+.main.recruit-open .r-name{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.main.recruit-open .r-club{font-size:9px}
+.main.recruit-open .r-meta .badge{font-size:8px;padding:1px 4px}
 </style>
 </head>
 <body>
@@ -713,6 +753,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
         <div class="cd-go">&#128293; IT'S CALLING DAY — LET'S GO</div>
       </div>
     </div>
+    <div id="editPanel" style="display:none;height:100%;overflow-y:auto;background:#07111f;border-right:1px solid #192e50;flex-direction:column"></div>
     <div id="guideContainer" style="display:none;height:100%"></div>
   </div>
 
@@ -1605,6 +1646,154 @@ function toggleRecruit(name) {
   }
 }
 
+
+// ── Edit Panel ────────────────────────────────────────────────────
+function buildEditPanel(name) {
+  const ep = document.getElementById('editPanel');
+  if (!ep) return;
+
+  const r = getRecruits().find(x => x.name === name);
+  if (!r) return;
+
+  const pos = getPos(r);
+  const interest = getInterest(r);
+  const st = store.statuses[name] || '';
+  const sc = STATUS_CONFIG[st] || STATUS_CONFIG[''];
+  const caller = store.callers[name] || '';
+  const phone = r.phone || '';
+  const email = r.email || '';
+  const callTime = store.callTimes[name] || '';
+  const callDate = store.callDates[name] || '';
+  const hudl = store.hudlLinks[name] || '';
+  const nm = q2(name);
+  const idKey = esc(name);
+
+  const tz = getRecruitTZ(r);
+  const tzConv = (callTime && tz) ? convertPSTtoTZ(callTime, tz) : null;
+
+  const posColors = {OH:'#3a8aff',MB:'#ff6a3a',RS:'#3aff8a',S:'#ffd03a',L:'#c03aff',DS:'#3affdd',OPP:'#ff3a8a'};
+  const posColor = posColors[pos] || '#5a8ab0';
+  const interestNum = parseFloat(interest) || 0;
+  const interestColor = interestNum>=5?'#4adf7a':interestNum>=4?'#f5c842':interestNum>=3?'#5aabff':'#3a5a7c';
+
+  ep.innerHTML = `
+    <!-- HEADER -->
+    <div class="ep-header">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div style="flex:1;min-width:0">
+          <div class="ep-name">${r.name}</div>
+          <div class="ep-pos-row">
+            <span style="background:${posColor}22;color:${posColor};border:1px solid ${posColor}44;border-radius:3px;padding:2px 8px;font-size:10px;font-weight:700">${pos}</span>
+            ${interest ? `<span style="color:${interestColor};font-size:13px;font-weight:700">★ ${interest}</span>` : ''}
+            ${st ? `<span class="badge ${sc.cls}" style="font-size:9px">${sc.label}</span>` : ''}
+            ${r.hot ? '<span style="font-size:13px">🔥</span>' : ''}
+          </div>
+          <div style="font-size:10px;color:#3a5a7c;margin-top:5px">${r.club||''}</div>
+        </div>
+        <button onclick="closeGuide()" style="background:none;border:none;color:#3a5a7c;cursor:pointer;font-size:18px;padding:0;line-height:1;flex-shrink:0">✕</button>
+      </div>
+      <!-- Phone -->
+      ${phone ? `<a href="tel:${phone.replace(/[^0-9+]/g,'')}" class="ep-phone-link" style="margin-top:10px;display:flex">📞 ${phone}</a>` : ''}
+      ${email ? `<div style="font-size:10px;color:#3a5a7c;margin-top:4px">${email}</div>` : ''}
+      <!-- Call time -->
+      ${callTime||callDate ? `<div style="margin-top:8px;padding:6px 10px;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.15);border-radius:5px;font-size:11px;color:#f5c842">🕐 ${callDate?fmtDate(callDate)+' · ':''}${callTime} PST${tzConv?` · <span style="color:#90d0ff">${tzConv.time} their time</span>`:''}</div>` : ''}
+    </div>
+
+    <!-- OUTCOME LOGGING -->
+    <div class="ep-section">
+      <div class="ep-section-title">Log Outcome</div>
+      <div class="ep-outcome-row">
+        <button class="ep-outcome-btn connected" onclick="logOutcome_named('${nm}','connected')">✓ Connected</button>
+        <button class="ep-outcome-btn noanswer" onclick="logOutcome_named('${nm}','noanswer')">✗ No Answer</button>
+        <button class="ep-outcome-btn voicemail" onclick="logOutcome_named('${nm}','voicemail')">✉ Voicemail</button>
+      </div>
+    </div>
+
+    <!-- EDIT FIELDS -->
+    <div class="ep-section">
+      <div class="ep-section-title">Edit Info</div>
+      <div class="ep-field">
+        <div class="ep-label">Name</div>
+        <input class="ep-input" type="text" value="${r.name}" onblur="editName('${nm}',this.value)">
+      </div>
+      <div class="ep-field">
+        <div class="ep-label">Interest</div>
+        <select class="ep-select" onchange="editInterest('${nm}',this.value)">
+          ${['','1','2','3','3.5','4','4-5','5'].map(v=>`<option value="${v}" ${getInterest(r)===v||(!v&&!getInterest(r))?'selected':''}>${v||'— Unknown —'}</option>`).join('')}
+        </select>
+      </div>
+      <div class="ep-field">
+        <div class="ep-label">Status</div>
+        <select class="ep-select" onchange="setSt('${nm}',this.value)">
+          ${Object.entries(STATUS_CONFIG).map(([k,v])=>`<option value="${k}" ${st===k?'selected':''}>${v.label||'No Status'}</option>`).join('')}
+        </select>
+      </div>
+      <div class="ep-field">
+        <div class="ep-label">Caller</div>
+        <select class="ep-select" onchange="setCaller('${nm}',this.value)">
+          <option value="">— Unassigned —</option>
+          ${['OJ','Leisa','Jerome','Kelsey'].map(x=>`<option value="${x}" ${caller===x?'selected':''}>${x}</option>`).join('')}
+        </select>
+      </div>
+      <div class="ep-field">
+        <div class="ep-label">Call Time (PST)</div>
+        <input class="ep-input" type="text" placeholder="e.g. 10:00 AM" value="${callTime}" onblur="setCallTime('${nm}',this.value)">
+      </div>
+      <div class="ep-field">
+        <div class="ep-label">Call Date</div>
+        <input class="ep-input" type="date" value="${callDate}" onchange="setCallDate('${nm}',this.value)">
+      </div>
+      ${hudl ? `<a href="${hudl}" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:rgba(90,171,255,.06);border:1px solid rgba(90,171,255,.15);border-radius:5px;color:#5aabff;text-decoration:none;font-size:11px;font-weight:600;margin-top:4px">🎥 Highlight Reel</a>` : ''}
+    </div>
+
+    <!-- NOTES -->
+    <div class="ep-section" style="flex:1;display:flex;flex-direction:column;min-height:0">
+      <div class="ep-section-title">Notes</div>
+      <div class="ep-note-log" id="epnlog_${idKey}">${renderNoteLog(name)}</div>
+      <div class="ep-field">
+        <select class="ep-note-author" id="epauthor_${idKey}">
+          ${['OJ','Leisa','Jerome','Kelsey'].map(x=>`<option value="${x}" ${caller===x?'selected':''}>${x}</option>`).join('')}
+          <option value="Coach" ${!caller?'selected':''}>Coach</option>
+        </select>
+        <textarea class="ep-note-text" id="epntext_${idKey}" placeholder="Write a note..."></textarea>
+        <button class="ep-note-add" onclick="addNoteFromPanel('${nm}','${idKey}')">+ Add Note</button>
+      </div>
+    </div>
+  `;
+
+  ep.classList.add('visible');
+}
+
+function addNoteFromPanel(name, idKey) {
+  const textEl   = document.getElementById('epntext_' + idKey);
+  const authorEl = document.getElementById('epauthor_' + idKey);
+  if (!textEl || !authorEl) return;
+  const text   = textEl.value.trim();
+  const author = authorEl.value || 'Coach';
+  if (!text) return;
+  const now = new Date();
+  const ts = now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'America/Los_Angeles'}) + ' PST ' +
+             now.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const entry = `[${ts}] ${author}: ${text}`;
+  store.notes[name] = (store.notes[name] ? store.notes[name] + '\n' : '') + entry;
+  saveStore();
+  if (syncEnabled) debounceSyncPush();
+  const logEl = document.getElementById('epnlog_' + idKey);
+  if (logEl) logEl.innerHTML = renderNoteLog(name);
+  textEl.value = '';
+  // Scroll log to bottom
+  if (logEl) logEl.scrollTop = logEl.scrollHeight;
+}
+
+function setCallTime(name, val) {
+  if (!val.trim()) return;
+  store.callTimes[name] = val.trim(); saveStore(); buildEditPanel(name);
+}
+function setCallDate(name, val) {
+  store.callDates[name] = val; saveStore(); buildEditPanel(name);
+}
+
+// ─────────────────────────────────────────────────────────────────
 function closeGuide() {
   activeRecruit = null;
   renderList();
@@ -1617,62 +1806,32 @@ function closeGuide() {
 
 function selectRecruit(name) {
   activeRecruit = name;
+  const main = document.querySelector('.main');
+  if (main) main.classList.add('recruit-open');
   renderList();
-  if (activeTab === 'schedule') { switchTab('roster', document.querySelectorAll('.tab-btn')[0]); }
+  if (activeTab === 'texts') renderTextSchedule();
+
+  // Show welcome/guide containers
+  document.getElementById('welcomeMsg').style.display = 'none';
+  document.getElementById('guideContainer').style.display = 'block';
+
+  // Build and show edit panel
+  buildEditPanel(name);
+
+  // Load PDF
   const r = getRecruits().find(x => x.name === name);
   if (!r) return;
-  showOutcomeBar(name);
-  document.getElementById('whisperToggle').style.display = 'flex';
-  // Load any existing whisper note for this recruit
-  const wt = document.getElementById('whisperTa');
-  if (wt) wt.value = store.whisperNotes && store.whisperNotes[name] ? store.whisperNotes[name] : '';
-  document.getElementById('welcomeMsg').style.display = 'none';
+  fetchWeather(r);
+  const url = getPDFUrl(name);
   const gc = document.getElementById('guideContainer');
-  gc.style.display = 'block';
-  const url = getBlobURL(name);
-  const guide = isGuide(r);
-  const tag = guide ? '<span class="guide-tag">&#10022; GUIDE</span>' : '';
-  const safeName = name.replace(/[^a-zA-Z0-9]/g,'_');
-  if (url) {
-    const hudl = store.hudlLinks[name] || '';
-    const caller = store.callers[name] || '';
-    const callTime = store.callTimes[name] || '';
-    const tz = getRecruitTZ(r);
-    const tzLabel = tz ? (TZ_LABEL[tz]||{short:'?',name:'Unknown'}) : null;
-    const tzConv = (callTime && tz) ? convertPSTtoTZ(callTime, tz) : null;
-    const tzLine = tzLabel ? `<span style="color:#7abcdf;font-size:11px">&#127758; ${tzLabel.name}${tzConv?' &mdash; <strong style="color:#90d0ff">'+tzConv.time+' their time</strong>':''}</span>` : '';
-    const hudlBtn = hudl ? `<a href="${hudl}" target="_blank" class="hudl-btn" style="padding:7px 14px;font-size:12px;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.6px">&#127909; Highlights</a>` : '';
-    const callerTag = caller ? `<span style="font-size:11px;color:#ffcc60;background:#1e1600;border:1px solid #3a3000;border-radius:3px;padding:2px 8px;">&#128222; ${caller}</span>` : '';
-    gc.innerHTML = `<div class="guide-panel">
-      <div class="guide-header">
-        <div class="guide-header-left">
-          <h2>${name} ${tag} ${callerTag}</h2>
-          <div class="guide-meta">
-            ${getPos(r) !== '\u2014' ? getPos(r)+' &nbsp;&middot;&nbsp; ':''} ${r.club||''}
-            <br>${r.phone ? `<a href="tel:${r.phone.replace(/[^0-9+]/g,'')}" style="color:#90d0ff;text-decoration:none;font-weight:700">&#128222; ${r.phone}</a>` : '&mdash;'} &nbsp;&middot;&nbsp; ${r.email ? `<a href="mailto:${r.email}" style="color:#7ab8d8;text-decoration:none">${r.email}</a>` : '&mdash;'}
-            ${tzLine ? '<br>'+tzLine : ''}
-          </div>
-        </div>
-        <div class="guide-actions">
-          ${hudlBtn}
-          <div class="timer-display" id="timerDisplay" onclick="toggleTimer('${q2(name)}')" title="Click to start/stop call timer">0:00</div>
-          <button class="btn btn-open" onclick="openCardFlip('${q2(name)}')" style="background:#0f1e38;border:1px solid #2a4a6c;color:#7ab8d8">&#9654; Card</button>
-          <button class="btn btn-open" onclick="openDrafter('${q2(name)}')" style="background:#0f1e38;border:1px solid #2a4a6c;color:#7ab8d8">&#9997; Draft Text</button>
-          <button class="btn btn-open" onclick="window.open('${url}','_blank')">&#8599; Full Screen</button>
-          <a href="${url}" download="${safeName}_Call_Guide.pdf"><button class="btn btn-dl">&#8595; Download</button></a>
-          <button class="btn btn-open" onclick="closeGuide()" title="Close guide" style="background:#1a0a10;border:1px solid #5a1a2a;color:#ff7088;padding:7px 10px">&#10005;</button>
-        </div>
-      </div>
-      <div class="weather-strip" id="weatherStrip"><span class="weather-loading">&#127756; Loading weather...</span></div>
-      <div class="pdf-viewer"><iframe src="${url}#toolbar=1" title="${name}"></iframe></div>
-    </div>`;
-    // Restore timer if this recruit has an active one
-    if (timerName === name && timerInterval) updateTimerDisplay();
-    // Fetch weather for recruit's location
-    fetchWeather(r);
-  } else {
-    gc.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#1e3050;font-size:14px">PDF not found.</div>';
-  }
+  gc.style.height = '100%';
+  gc.innerHTML = url
+    ? `<iframe src="${url}" style="width:100%;height:100%;border:none"></iframe>`
+    : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#1e3050;font-size:14px">No PDF guide yet for ${name}.</div>`;
+
+  // Show whisper toggle
+  const wt = document.getElementById('whisperToggle');
+  if (wt) wt.style.display = 'flex';
 }
 
 // ── Schedule view ─────────────────────────────────────────────────────────────
