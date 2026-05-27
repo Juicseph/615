@@ -98,12 +98,14 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .main.rp-fullwidth .sidebar{display:none}
 .sidebar{background:var(--sidebar-bg);border-right:1px solid var(--border-primary);display:flex;flex-direction:column;overflow:hidden;min-height:0;position:relative;z-index:10}
 .content-area{overflow:hidden;display:flex;flex-direction:column;height:100%}
-#tabRoster{flex-direction:row}
-#tabRoster .welcome{flex:1}
-#editPanel{width:360px;min-width:360px;flex-shrink:0;display:none;flex-direction:column;overflow-y:auto;height:100%;background:#07111f;border-right:1px solid #1a3050}
+/* tabRoster: column by default (welcome screen), row when recruit open */
+#tabRoster{flex-direction:column}
+#tabRoster.recruit-open{flex-direction:row}
+#tabRoster .welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#editPanel{width:360px;min-width:360px;max-width:360px;flex-shrink:0;display:none;flex-direction:column;overflow-y:auto;height:100%;background:#07111f;border-right:1px solid #1a3050}
 #editPanel.visible{display:flex}
-#guideContainer{flex:1;min-width:0;display:none;height:100%}
-#guideContainer.visible{display:flex;flex-direction:column}
+#guideContainer{flex:1;min-width:0;height:100%;display:none}
+#guideContainer.visible{display:block}
 
 /* ── SIDEBAR ── */
 .search-box{padding:10px 13px;border-bottom:1px solid #192e50;background:#060e1c;flex-shrink:0}
@@ -1808,6 +1810,7 @@ function setCallDate(name, val) {
 // ─────────────────────────────────────────────────────────────────
 function closeGuide() {
   activeRecruit = null;
+  document.getElementById('tabRoster').classList.remove('recruit-open');
   renderList();
   document.getElementById('welcomeMsg').style.display = 'flex';
   document.getElementById('guideContainer').style.display = 'none';
@@ -1819,13 +1822,18 @@ function closeGuide() {
 function selectRecruit(name) {
   activeRecruit = name;
 
+  // Switch tabRoster to 3-col row layout
+  const tabR = document.getElementById('tabRoster');
+  if (tabR) tabR.classList.add('recruit-open');
+
+  // Hide welcome screen
+  const wm = document.getElementById('welcomeMsg');
+  if (wm) wm.style.display = 'none';
+
   renderList();
   if (activeTab === 'texts') renderTextSchedule();
 
-  // Hide welcome, show panels
-  document.getElementById('welcomeMsg').style.display = 'none';
-
-  // Build edit panel
+  // Build and show edit panel
   buildEditPanel(name);
 
   // Load PDF into guideContainer
@@ -1835,8 +1843,11 @@ function selectRecruit(name) {
   const gc = document.getElementById('guideContainer');
   gc.classList.add('visible');
   gc.innerHTML = url
-    ? `<iframe src="${url}" style="width:100%;height:100%;border:none;flex:1"></iframe>`
-    : `<div style="display:flex;align-items:center;justify-content:center;flex:1;color:#1e3050;flex-direction:column;gap:10px"><div style="font-size:14px">No PDF guide yet</div><div style="font-size:11px;color:#1a2a3a">${name}</div></div>`;
+    ? `<iframe src="${url}" style="width:100%;height:100%;border:none"></iframe>`
+    : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#1e3050;flex-direction:column;gap:10px">
+        <div style="font-size:14px">No PDF guide yet for ${name}</div>
+        <div style="font-size:11px;color:#1a2a3a">Upload one in the edit panel</div>
+      </div>`;
 
   const wt = document.getElementById('whisperToggle');
   if (wt) wt.style.display = 'flex';
@@ -2272,6 +2283,7 @@ function reRender(name) {
   const focusId = wasInput ? active.id : null;
   const focusClass = wasInput && !focusId ? active.className.split(' ')[0] : null;
   activeRecruit = name;
+  document.getElementById('tabRoster').classList.add('recruit-open');
   renderList();
   // Restore focus
   if (focusId) {
