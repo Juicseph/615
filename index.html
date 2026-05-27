@@ -1007,10 +1007,170 @@ function loadStore() {
 function saveStore() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); }
   catch(e) { console.warn('Storage full'); }
-  if (syncEnabled && syncBinId && syncApiKey) {
-    debounceSyncPush();
-  }
+  if (syncEnabled) debounceSyncPush();
 }
+
+
+// ══════════════════════════════════════════════
+// LIVE SYNC — JSONBin.io
+// ══════════════════════════════════════════════
+let syncEnabled   = false;
+let syncBinId     = localStorage.getItem('fsvu_bin_id')  || '';
+let syncApiKey    = localStorage.getItem('fsvu_api_key') || '';
+let syncRole      = localStorage.getItem('fsvu_role')    || 'owner';
+let syncPushTimer = null;
+let syncPollTimer = null;
+let lastPullHash  = '';
+
+const COACH_FIELDS = ['notes','statuses','callTimes','callDates','callers',
+  'textMsgs','textDates','textTimes','textSent','interestOverrides',
+  'commitTimes','whisperNotes'];
+
+function setSyncStatus(s, msg) {
+  const el = document.getElementById('syncStatusDot');
+  const lb = document.getElementById('syncStatusLabel');
+  if (!el || !lb) return;
+  const map = {
+    off:     ['#3a5a7c', '○ Sync Off'],
+    syncing: ['#f5c842', '⟳ Syncing…'],
+    ok:      ['#4adf7a', '● Live'],
+    err:     ['#ff4060', '✕ ' + (msg||'Error')],
+    pulling: ['#5aabff', '↓ Pulling…'],
+  };
+  const [col, lbl] = map[s] || map.off;
+  el.style.borderColor = col;
+  lb.style.color = col;
+  lb.textContent = lbl;
+}
+
+function debounceSyncPush() {
+  clearTimeout(syncPushTimer);
+  syncPushTimer = setTimeout(pushToSync, 1500);
+}
+
+async function pushToSync() {
+  if (!syncBinId || !syncApiKey) return;
+  setSyncStatus('syncing');
+  try {
+    let payload = { _pushedAt: Date.now(), _pushedBy: syncRole };
+    if (syncRole === 'owner') {
+      Object.assign(payload, store);
+    } else {
+      COACH_FIELDS.forEach(k => { if (store[k]) payload[k] = store[k]; });
+    }
+    const res = await fetch('https://api.jsonbin.io/v3/b/' + syncBinId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': syncApiKey },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(res.status);
+    setSyncStatus('ok');
+  } catch(e) { setSyncStatus('err', 'Push failed'); }
+}
+
+async function pullFromSync() {
+  if (!syncBinId || !syncApiKey) return;
+  setSyncStatus('pulling');
+  try {
+    const res = await fetch('https://api.jsonbin.io/v3/b/' + syncBinId + '/latest', {
+      headers: { 'X-Master-Key': syncApiKey, 'X-Bin-Meta': 'false' }
+    });
+    if (!res.ok) throw new Error(res.status);
+    const remote = await res.json();
+    const hash = (remote._pushedAt||0) + '_' + (remote._pushedBy||'');
+    if (hash === lastPullHash) { setSyncStatus('ok'); return; }
+    lastPullHash = hash;
+    if (remote._pushedBy && remote._pushedBy !== 'owner') {
+      // Coach pushed — merge only coach fields
+      COACH_FIELDS.forEach(k => {
+        if (!remote[k]) return;
+        if (typeof remote[k] === 'object' && !Array.isArray(remote[k])) {
+          store[k] = Object.assign({}, store[k]||{}, remote[k]);
+        } else { store[k] = remote[k]; }
+      });
+    } else if (remote._pushedBy === 'owner') {
+      // Owner pushed — take everything except PDFs
+      const keep = { customPDFs: store.customPDFs, newRecruits: store.newRecruits };
+      COACH_FIELDS.forEach(k => { if (remote[k]) store[k] = remote[k]; });
+      Object.assign(store, keep);
+    }
+    try { localStorage.setItem('fsvu_hub_v2', JSON.stringify(store)); } catch(e){}
+    renderList(); renderLeaderboard(); updateCounts();
+    if (activeTab === 'command') renderCommand();
+    setSyncStatus('ok');
+    showSyncToast('↓ Live update received');
+  } catch(e) { setSyncStatus('err', 'Pull failed'); }
+}
+
+function showSyncToast(msg) {
+  let t = document.getElementById('syncToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'syncToast';
+    t.style.cssText = 'position:fixed;bottom:80px;right:24px;background:#0c1828;border:1px solid #2a4a7c;border-radius:6px;padding:10px 16px;font-size:12px;color:#5aabff;z-index:99999;transition:opacity .5s;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.6)';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.style.opacity = '1';
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.style.opacity='0', 3000);
+}
+
+function startSync() {
+  if (!syncBinId || !syncApiKey) { setSyncStatus('off'); return; }
+  syncEnabled = true;
+  pullFromSync();
+  if (syncPollTimer) clearInterval(syncPollTimer);
+  syncPollTimer = setInterval(pullFromSync, 30000);
+  setSyncStatus('ok');
+}
+
+function openSyncModal() {
+  const m = document.getElementById('syncModal');
+  if (!m) return;
+  document.getElementById('syncBinInput').value   = syncBinId;
+  document.getElementById('syncKeyInput').value   = syncApiKey;
+  document.getElementById('syncRoleSelect').value = syncRole;
+  m.style.display = 'flex';
+}
+
+function closeSyncModal() {
+  const m = document.getElementById('syncModal');
+  if (m) m.style.display = 'none';
+}
+
+function saveSyncSettings() {
+  syncBinId  = document.getElementById('syncBinInput').value.trim();
+  syncApiKey = document.getElementById('syncKeyInput').value.trim();
+  syncRole   = document.getElementById('syncRoleSelect').value;
+  localStorage.setItem('fsvu_bin_id',  syncBinId);
+  localStorage.setItem('fsvu_api_key', syncApiKey);
+  localStorage.setItem('fsvu_role',    syncRole);
+  closeSyncModal();
+  if (syncBinId && syncApiKey) startSync();
+  else { syncEnabled=false; clearInterval(syncPollTimer); setSyncStatus('off'); }
+}
+
+async function createNewBin() {
+  const key = document.getElementById('syncKeyInput').value.trim();
+  if (!key) { alert('Paste your JSONBin Master Key first.'); return; }
+  try {
+    const res = await fetch('https://api.jsonbin.io/v3/b', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': key,
+        'X-Bin-Name': 'FSVU-Recruiting-2028',
+        'X-Bin-Private': 'true',
+      },
+      body: JSON.stringify({ _init: true, _created: Date.now() }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    document.getElementById('syncBinInput').value = data.metadata.id;
+    alert('Bin created!\nBin ID: ' + data.metadata.id + '\n\nShare this ID + your Master Key with your coaches.');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+// ══ End Sync ══════════════════════════════════
 
 // ── Active recruits (excluding deleted) ───────────────────────────────────────
 function getRecruits() {
