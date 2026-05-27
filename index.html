@@ -168,6 +168,16 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .ctrl-time:focus{outline:none;border-color:#f5c842}
 .ctrl-time::placeholder{color:#2a3a50;font-weight:400}
 .ctrl-notes{width:100%;background:#0d1a2e;border:1px solid #1e3560;color:#c0b8b0;padding:5px 8px;border-radius:4px;font-size:11px;font-family:"Source Sans 3",sans-serif;resize:vertical;min-height:80px}
+.notes-log{background:#060e1c;border:1px solid #0f1e38;border-radius:4px;padding:6px 8px;max-height:160px;overflow-y:auto;margin-bottom:5px;min-height:32px}
+.note-entry-item{border-left:2px solid #3a7a5a;padding:4px 8px;margin-bottom:5px}
+.note-entry-item:last-child{margin-bottom:0}
+.note-entry-meta{font-size:9px;margin-bottom:2px}
+.note-entry-body{font-size:10.5px;color:#b0c8d8;line-height:1.5}
+.note-entry-row{display:flex;gap:5px;align-items:flex-start;margin-bottom:4px}
+.note-author-sel{background:#0d1a2e;border:1px solid #1e3560;color:#ffcc60;padding:4px 6px;border-radius:4px;font-size:10px;font-family:"Source Sans 3",sans-serif;flex-shrink:0;height:fit-content;margin-top:1px}
+.note-entry-text{flex:1;min-height:40px;resize:none}
+.note-add-btn{width:100%;padding:5px;background:#071428;border:1px solid #1e3560;border-radius:4px;color:#5aabff;font-size:10px;font-weight:700;cursor:pointer;font-family:"Source Sans 3",sans-serif;transition:all .15s;margin-bottom:4px}
+.note-add-btn:hover{background:#0a1e3c;border-color:#3a5a9c;color:#90c8ff}
 .ctrl-notes:focus{outline:none;border-color:#3a5a9c}
 .ctrl-notes::placeholder{color:#2a3a50}
 .upload-label{font-size:9px;color:#2a3a52;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:3px;padding:4px 8px;border:1px dashed #1a2a3e;border-radius:3px;margin-top:3px;transition:all .15s}
@@ -1026,6 +1036,65 @@ const COACH_FIELDS = ['notes','statuses','callTimes','callDates','callers',
   'textMsgs','textDates','textTimes','textSent','interestOverrides',
   'commitTimes','whisperNotes'];
 
+
+function addCoachNote(name, coach) {
+  const idKey = esc(name);
+  const ta = document.getElementById('notes_' + idKey);
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', {
+    timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit', hour12: true
+  });
+  const stamp = `[${timeStr} PST · ${coach}] `;
+  // Put cursor position or append
+  if (ta) {
+    const pos = ta.selectionStart;
+    const before = ta.value.substring(0, pos);
+    const after  = ta.value.substring(pos);
+    // If at start of line or empty, just insert stamp
+    const atLineStart = pos === 0 || ta.value[pos-1] === '\n';
+    if (atLineStart || ta.value === '') {
+      ta.value = before + stamp + after;
+    } else {
+      ta.value = before + '\n' + stamp + after;
+    }
+    ta.focus();
+    const newPos = (atLineStart ? pos : pos + 1) + stamp.length;
+    ta.setSelectionRange(newPos, newPos);
+    store.notes[name] = ta.value;
+  } else {
+    const existing = store.notes[name] || '';
+    store.notes[name] = existing ? existing + '\n' + stamp : stamp;
+  }
+  saveStore();
+  renderNotePreview(name);
+}
+
+function renderNotePreview(name) {
+  const idKey = esc(name);
+  const el = document.getElementById('notePreview_' + idKey);
+  if (!el) return;
+  const notes = store.notes[name] || '';
+  const lines = notes.split('\n').filter(l => l.trim());
+  if (lines.length === 0) { el.innerHTML = ''; return; }
+
+  // Parse lines and group by coach
+  const coaches = ['OJ','Leisa','Jerome','Kelsey'];
+  const coachColors = { OJ:'#5aabff', Leisa:'#4adf7a', Jerome:'#f5c842', Kelsey:'#d0a0ff' };
+  const outcomeColors = { '✓':'#4adf7a', '✗':'#c080ff', '✉':'#f5c842' };
+
+  el.innerHTML = lines.map(line => {
+    const coach = coaches.find(c => line.includes('· ' + c + ']') || line.includes('· ' + c));
+    const color = coach ? coachColors[coach] : '#3a5a7c';
+    const firstChar = line.trim()[0];
+    const outcomeColor = ['✓','✗','✉'].includes(firstChar) ? outcomeColors[firstChar] : null;
+    const isOutcome = line.match(/^\[.*PST\]/);
+    return `<div style="display:flex;align-items:flex-start;gap:5px;padding:3px 0;border-bottom:1px solid #0a1828;font-size:10px;line-height:1.4">
+      ${coach ? `<span style="flex-shrink:0;font-size:8px;font-weight:700;color:${color};background:rgba(0,0,0,.3);padding:1px 5px;border-radius:2px;margin-top:1px;border:1px solid ${color}40">${coach}</span>` : '<span style="width:28px;flex-shrink:0"></span>'}
+      <span style="color:${outcomeColor||'#8ab0c8'};flex:1">${line.replace(/\[.*?PST.*?\]/,'').trim()}</span>
+    </div>`;
+  }).join('');
+}
+
 function setSyncStatus(s, msg) {
   const el = document.getElementById('syncStatusDot');
   const lb = document.getElementById('syncStatusLabel');
@@ -1478,7 +1547,15 @@ function renderList() {
           </div>
           <div id="oblog_${idKey}" style="font-size:10px;color:#2a5a30;min-height:14px;margin-bottom:2px"></div>
           <div class="field-label">Notes</div>
-          <textarea class="ctrl-notes" placeholder="Call notes, next steps..." oninput="setNote('${nm}',this.value)">${store.notes[r.name]||''}</textarea>
+          <div class="notes-log" id="notelog_${idKey}">${renderNoteLog(r.name)}</div>
+          <div class="note-entry-row">
+            <select class="note-author-sel" id="noteauthor_${idKey}">
+              <option value="${store.callers[r.name]||syncRole||'Coach'}">${store.callers[r.name]||syncRole||'Coach'}</option>
+              ${['OJ','Leisa','Jerome','Kelsey'].filter(x=>x!==(store.callers[r.name]||syncRole)).map(x=>`<option value="${x}">${x}</option>`).join('')}
+            </select>
+            <textarea class="ctrl-notes note-entry-text" id="notetext_${idKey}" placeholder="Add a note..." rows="2"></textarea>
+          </div>
+          <button class="note-add-btn" onclick="addNote('${nm}','${idKey}')">+ Add Note</button>
           <label class="upload-label${store.customPDFs[r.name]?' done':''}" id="uplabel_${idKey}">
             <input type="file" class="upload-input" accept=".pdf" onchange="uploadPDF('${nm}',this)">
             ${store.customPDFs[r.name]?'&#10003; Guide Uploaded':'&#8593; Upload Guide PDF'}
@@ -1719,6 +1796,58 @@ function setSt(name, val) {
   if (val === 'committed' && prev !== 'committed') launchConfetti(name);
 }
 function setNote(name, val){ store.notes[name] = val; saveStore(); }
+
+// ── Structured Notes ──────────────────────────────────────────────
+function renderNoteLog(name) {
+  const raw = store.notes[name] || '';
+  if (!raw.trim()) return '<div style="font-size:10px;color:#1e3050;padding:4px 0;font-style:italic">No notes yet</div>';
+  // Parse structured notes (lines starting with [timestamp]) vs legacy plain text
+  const lines = raw.split('\n').filter(l => l.trim());
+  return lines.map(line => {
+    const structured = line.match(/^\[(.*?)\]\s*(\w+)?:\s*(.*)$/);
+    if (structured) {
+      const [, ts, author, text] = structured;
+      const authorColor = {OJ:'#f5c842',Leisa:'#4adf7a',Jerome:'#5aabff',Kelsey:'#c080ff'}[author] || '#90b8d8';
+      return `<div class="note-entry-item">
+        <div class="note-entry-meta"><span style="color:${authorColor};font-weight:700">${author||'Coach'}</span><span style="color:#2a4a5c;margin-left:6px">${ts}</span></div>
+        <div class="note-entry-body">${text}</div>
+      </div>`;
+    }
+    // Legacy plain text line
+    if (line.match(/^\[.*PST\]/)) {
+      return `<div class="note-entry-item" style="border-left-color:#2a4a6c">
+        <div class="note-entry-body" style="color:#5a8ab0">${line}</div>
+      </div>`;
+    }
+    return `<div class="note-entry-item" style="border-left-color:#1a3050">
+      <div class="note-entry-body" style="color:#4a6a80">${line}</div>
+    </div>`;
+  }).join('');
+}
+
+function addNote(name, idKey) {
+  const textEl   = document.getElementById('notetext_' + idKey);
+  const authorEl = document.getElementById('noteauthor_' + idKey);
+  if (!textEl || !authorEl) return;
+  const text   = textEl.value.trim();
+  const author = authorEl.value.trim() || 'Coach';
+  if (!text) return;
+
+  const now = new Date();
+  const ts = now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'America/Los_Angeles'}) + ' PST ' +
+             now.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const entry = `[${ts}] ${author}: ${text}`;
+
+  const existing = store.notes[name] || '';
+  store.notes[name] = existing ? existing + '\n' + entry : entry;
+  saveStore();
+  if (syncEnabled) debounceSyncPush();
+
+  // Update the log in-place without full re-render
+  const logEl = document.getElementById('notelog_' + idKey);
+  if (logEl) logEl.innerHTML = renderNoteLog(name);
+  textEl.value = '';
+}
 function setPos(name, val) { if(val) store.positions[name]=val; else delete store.positions[name]; saveStore(); reRender(name); }
 function setCDate(name,val){ store.callDates[name]=val; saveStore(); reRender(name); }
 function saveDob(name, val) {
@@ -4960,7 +5089,8 @@ function logOutcome_named(name, type) {
     timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit', hour12: true
   });
   const labels = { connected: '✓ Connected', noanswer: '✗ No Answer', voicemail: '✉ Left Voicemail' };
-  const entry = `[${timeStr} PST] ${labels[type]}`;
+  const caller = store.callers[name] || syncRole || 'Unknown';
+  const entry = `[${timeStr} PST] ${labels[type]} · ${caller}`;
   const existing = store.notes[name] || '';
   store.notes[name] = existing ? existing + '\n' + entry : entry;
   saveStore();
