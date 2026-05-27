@@ -21,6 +21,17 @@ html{height:100%;overflow:hidden}
   --sidebar-bg:#060e1c;--recruit-hover:#0f1e38;--recruit-active:#101f38;
   --scroll-thumb:#1e3560;
 }
+[data-theme="fresno"] {
+  /* Fresno State official colors: Red #DB0032, Blue #002E6D, White #FFFFFF */
+  --bg-base:#001a40;--bg-panel:#002255;--bg-card:#001535;--bg-input:#001a40;
+  --border-primary:#003580;--border-secondary:#002560;--border-input:#0040a0;
+  --text-primary:#ffffff;--text-secondary:#a0c0ff;--text-muted:#5080c0;
+  --accent:#DB0032;--accent-gold:#ffffff;--accent-blue:#6699ff;
+  --header-bg:linear-gradient(135deg,#002E6D 0%,#8B0020 50%,#002E6D 100%);
+  --header-border:#DB0032;--tab-bg:#001a40;--tab-active:#002E6D;
+  --sidebar-bg:#001535;--recruit-hover:#002050;--recruit-active:#002E6D;
+  --scroll-thumb:#003580;
+}
 [data-theme="light"] {
   --bg-base:#f0f4f8;--bg-panel:#ffffff;--bg-card:#f8fafc;--bg-input:#ffffff;
   --border-primary:#d0dcea;--border-secondary:#e4ecf4;--border-input:#b8cfe0;
@@ -648,6 +659,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 <div id="themePicker" style="display:none;position:fixed;top:60px;right:12px;background:var(--bg-panel);border:1px solid var(--border-primary);border-radius:8px;padding:12px 16px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.6);min-width:200px">
   <div style="font-size:10px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;font-weight:700">Choose Theme</div>
   <div style="display:flex;flex-direction:column;gap:6px">
+    <button onclick="setTheme('fresno')" class="theme-opt" data-t="fresno" style="border-color:#DB0032">🐾 Fresno State <span style="font-size:9px;opacity:.6">— official red &amp; blue</span></button>
     <button onclick="setTheme('dark')"   class="theme-opt" data-t="dark">&#9680; Midnight <span style="font-size:9px;opacity:.6">— default dark navy</span></button>
     <button onclick="setTheme('slate')"  class="theme-opt" data-t="slate">&#9632; Slate <span style="font-size:9px;opacity:.6">— dark charcoal</span></button>
     <button onclick="setTheme('dusk')"   class="theme-opt" data-t="dusk">&#9670; Dusk <span style="font-size:9px;opacity:.6">— dark purple</span></button>
@@ -1686,7 +1698,7 @@ function buildEditPanel(name) {
     <!-- NOTES -->
     <div class="ep-section">
       <div class="ep-section-title">Notes</div>
-      <div class="ep-note-log" id="epnlog_${idKey}" style="max-height:180px;min-height:60px">${renderNoteLog(name)}</div>
+      <div class="ep-note-log" id="epnlog_${idKey}" style="max-height:180px;min-height:60px">${renderNoteLog(name, idKey)}</div>
       <div style="display:flex;gap:5px;margin-top:5px">
         <select class="ep-note-author" id="epauthor_${idKey}" style="flex-shrink:0;width:80px">
           ${['OJ','Leisa','Jerome','Kelsey'].map(x=>`<option value="${x}" ${caller===x?'selected':''}>${x}</option>`).join('')}
@@ -1737,12 +1749,26 @@ function buildEditPanel(name) {
         <input class="ep-input" type="text" placeholder="Club name (ST)" value="${(store.clubOverrides&&store.clubOverrides[name])||r.club||''}" onblur="setClub('${nm}',this.value)">
       </div>
       <div class="ep-field">
-        <div class="ep-label">Club Address <span style="color:#1e3050;font-weight:400">(updates map pin)</span></div>
+        <div class="ep-label">Club Address <span style="color:#2a4a60;font-weight:400">— shared across same club</span></div>
         <div style="display:flex;gap:5px">
-          <input class="ep-input" style="flex:1;color:#c0d8b0" type="text" placeholder="123 Main St, City ST · City, ST · lat,lon" value="${store.locations&&store.locations[name]||''}" oninput="setLocation('${nm}',this.value)" onblur="setLocationFlush('${nm}',this.value)">
-          <button onclick="clearLocation('${nm}')" style="padding:6px 8px;background:#0d1a2e;border:1px solid #1e3560;border-radius:4px;color:#3a5a7c;cursor:pointer;font-size:10px;white-space:nowrap;flex-shrink:0">✕</button>
+          <input class="ep-input" style="flex:1;color:#c0d8b0" type="text" placeholder="123 Main St, City ST · City, ST · lat,lon"
+            value="${getClubAddress(r)}"
+            oninput="setClubAddress('${nm}',this.value)"
+            onblur="flushClubAddress('${nm}',this.value)">
+          <button onclick="clearClubAddress('${nm}')" style="padding:6px 8px;background:#0d1a2e;border:1px solid #1e3560;border-radius:4px;color:#3a5a7c;cursor:pointer;font-size:10px;white-space:nowrap;flex-shrink:0">✕</button>
         </div>
-        ${store.locations&&store.locations[name] ? `<div style="font-size:9px;color:#3a7a5a;margin-top:3px">📍 Custom pin set — shows on map</div>` : `<div style="font-size:9px;color:#1e3050;margin-top:3px">Using state center by default</div>`}
+        <div style="font-size:9px;color:#2a4a60;margin-top:2px">${getClubAddress(r)?'📍 Custom pin · applies to all recruits at this club':'Using state from club name by default'}</div>
+      </div>
+      <div class="ep-field">
+        <div class="ep-label">Home Address <span style="color:#2a4a60;font-weight:400">— individual pin override</span></div>
+        <div style="display:flex;gap:5px">
+          <input class="ep-input" style="flex:1;color:#b0d8c0" type="text" placeholder="123 Home St, City ST · lat,lon"
+            value="${store.homeAddresses&&store.homeAddresses[name]||''}"
+            oninput="setHomeAddress('${nm}',this.value)"
+            onblur="flushHomeAddress('${nm}',this.value)">
+          <button onclick="clearHomeAddress('${nm}')" style="padding:6px 8px;background:#0d1a2e;border:1px solid #1e3560;border-radius:4px;color:#3a5a7c;cursor:pointer;font-size:10px;white-space:nowrap;flex-shrink:0">✕</button>
+        </div>
+        <div style="font-size:9px;color:#2a4a60;margin-top:2px">${store.homeAddresses&&store.homeAddresses[name]?'🏠 Home pin set — overrides club address on map':'Falls back to club address'}</div>
       </div>
     </div>
 
@@ -1986,31 +2012,91 @@ function setSt(name, val) {
 function setNote(name, val){ store.notes[name] = val; saveStore(); }
 
 // ── Structured Notes ──────────────────────────────────────────────
-function renderNoteLog(name) {
+function renderNoteLog(name, idKey) {
   const raw = store.notes[name] || '';
   if (!raw.trim()) return '<div style="font-size:10px;color:#1e3050;padding:4px 0;font-style:italic">No notes yet</div>';
-  // Parse structured notes (lines starting with [timestamp]) vs legacy plain text
   const lines = raw.split('\n').filter(l => l.trim());
-  return lines.map(line => {
+  return lines.map((line, i) => {
+    const nm2 = q2(name);
     const structured = line.match(/^\[(.*?)\]\s*(\w+)?:\s*(.*)$/);
     if (structured) {
       const [, ts, author, text] = structured;
       const authorColor = {OJ:'#f5c842',Leisa:'#4adf7a',Jerome:'#5aabff',Kelsey:'#c080ff'}[author] || '#90b8d8';
-      return `<div class="note-entry-item">
-        <div class="note-entry-meta"><span style="color:${authorColor};font-weight:700">${author||'Coach'}</span><span style="color:#2a4a5c;margin-left:6px">${ts}</span></div>
-        <div class="note-entry-body">${text}</div>
+      return `<div class="note-entry-item" id="noteline_${esc(name)}_${i}">
+        <div class="note-entry-meta" style="display:flex;align-items:center;justify-content:space-between">
+          <span><span style="color:${authorColor};font-weight:700">${author||'Coach'}</span><span style="color:#2a4a5c;margin-left:6px;font-size:9px">${ts}</span></span>
+          <span style="display:flex;gap:4px">
+            <button onclick="editNote('${nm2}',${i},'${esc(name)}')" style="background:none;border:none;color:#2a4a6c;cursor:pointer;font-size:9px;padding:0 2px">✏</button>
+            <button onclick="deleteNote('${nm2}',${i},'${esc(name)}')" style="background:none;border:none;color:#5a1a2a;cursor:pointer;font-size:9px;padding:0 2px">✕</button>
+          </span>
+        </div>
+        <div class="note-entry-body" id="notebody_${esc(name)}_${i}">${text}</div>
       </div>`;
     }
-    // Legacy plain text line
     if (line.match(/^\[.*PST\]/)) {
-      return `<div class="note-entry-item" style="border-left-color:#2a4a6c">
+      return `<div class="note-entry-item" style="border-left-color:#2a4a6c" id="noteline_${esc(name)}_${i}">
+        <div class="note-entry-meta" style="display:flex;justify-content:flex-end">
+          <button onclick="deleteNote('${nm2}',${i},'${esc(name)}')" style="background:none;border:none;color:#5a1a2a;cursor:pointer;font-size:9px;padding:0 2px">✕</button>
+        </div>
         <div class="note-entry-body" style="color:#5a8ab0">${line}</div>
       </div>`;
     }
-    return `<div class="note-entry-item" style="border-left-color:#1a3050">
+    return `<div class="note-entry-item" style="border-left-color:#1a3050" id="noteline_${esc(name)}_${i}">
+      <div class="note-entry-meta" style="display:flex;justify-content:flex-end">
+        <button onclick="deleteNote('${nm2}',${i},'${esc(name)}')" style="background:none;border:none;color:#5a1a2a;cursor:pointer;font-size:9px;padding:0 2px">✕</button>
+      </div>
       <div class="note-entry-body" style="color:#4a6a80">${line}</div>
     </div>`;
   }).join('');
+}
+
+function deleteNote(name, lineIdx, idKey) {
+  const lines = (store.notes[name]||'').split('\n').filter(l=>l.trim());
+  lines.splice(lineIdx, 1);
+  store.notes[name] = lines.join('\n');
+  saveStore();
+  const log = document.getElementById('epnlog_' + idKey);
+  if (log) log.innerHTML = renderNoteLog(name, idKey);
+  if (syncEnabled) debounceSyncPush();
+}
+
+function editNote(name, lineIdx, idKey) {
+  const lines = (store.notes[name]||'').split('\n').filter(l=>l.trim());
+  const line = lines[lineIdx] || '';
+  const structured = line.match(/^\[(.*?)\]\s*(\w+)?:\s*(.*)$/);
+  const currentText = structured ? structured[3] : line;
+  const bodyEl = document.getElementById('notebody_' + idKey + '_' + lineIdx);
+  if (!bodyEl) return;
+  // Replace body with inline edit
+  bodyEl.innerHTML = `<div style="display:flex;gap:4px;margin-top:3px">
+    <input id="noteedit_${idKey}_${lineIdx}" type="text" value="${currentText.replace(/"/g,'&quot;')}"
+      style="flex:1;background:#0a1628;border:1px solid #3a5a9c;color:#e0d8cc;padding:3px 6px;border-radius:3px;font-size:11px;font-family:inherit"
+      onkeydown="if(event.key==='Enter')saveNoteEdit('${q2(name)}',${lineIdx},'${idKey}')">
+    <button onclick="saveNoteEdit('${q2(name)}',${lineIdx},'${idKey}')" style="padding:3px 8px;background:#0d3a14;border:1px solid #2a7a3a;border-radius:3px;color:#4adf7a;font-size:10px;cursor:pointer">Save</button>
+    <button onclick="cancelNoteEdit('${idKey}',${lineIdx},'${currentText.replace(/'/g,"\\'")}')" style="padding:3px 6px;background:none;border:1px solid #1a3050;border-radius:3px;color:#3a5a7c;font-size:10px;cursor:pointer">✕</button>
+  </div>`;
+  document.getElementById('noteedit_' + idKey + '_' + lineIdx)?.focus();
+}
+
+function saveNoteEdit(name, lineIdx, idKey) {
+  const input = document.getElementById('noteedit_' + idKey + '_' + lineIdx);
+  if (!input) return;
+  const newText = input.value.trim();
+  if (!newText) return;
+  const lines = (store.notes[name]||'').split('\n').filter(l=>l.trim());
+  const line = lines[lineIdx]||'';
+  const structured = line.match(/^(\[.*?\]\s*\w+:\s*)(.*)/);
+  lines[lineIdx] = structured ? structured[1] + newText : newText;
+  store.notes[name] = lines.join('\n');
+  saveStore();
+  const log = document.getElementById('epnlog_' + idKey);
+  if (log) log.innerHTML = renderNoteLog(name, idKey);
+  if (syncEnabled) debounceSyncPush();
+}
+
+function cancelNoteEdit(idKey, lineIdx, origText) {
+  const bodyEl = document.getElementById('notebody_' + idKey + '_' + lineIdx);
+  if (bodyEl) bodyEl.innerHTML = origText;
 }
 
 function addNote(name, idKey) {
@@ -2779,6 +2865,61 @@ function saveClubLocation(recruitName, inputEl) {
     if (status) { status.textContent='✓ Cleared — using state default'; status.style.color='#3a5a7c'; setTimeout(()=>{if(status)status.textContent='';},2000); }
     if (activeTab==='map') renderMap();
   }
+}
+
+
+// ── Club address (shared by club name) ───────────────────────────
+function getClubName(r) {
+  return (store.clubOverrides && store.clubOverrides[r.name]) || r.club || '';
+}
+function getClubAddress(r) {
+  const club = getClubName(r);
+  return (store.clubAddresses && store.clubAddresses[club]) || '';
+}
+function setClubAddress(name, val) {
+  const r = getRecruits().find(x => x.name === name);
+  if (!r) return;
+  const club = getClubName(r);
+  if (!store.clubAddresses) store.clubAddresses = {};
+  store.clubAddresses[club] = val;
+  saveStore();
+}
+function flushClubAddress(name, val) {
+  const r = getRecruits().find(x => x.name === name);
+  if (!r) return;
+  const club = getClubName(r);
+  if (!store.clubAddresses) store.clubAddresses = {};
+  store.clubAddresses[club] = val.trim();
+  saveStore();
+  if (activeTab === 'map') renderMap();
+}
+function clearClubAddress(name) {
+  const r = getRecruits().find(x => x.name === name);
+  if (!r) return;
+  const club = getClubName(r);
+  if (store.clubAddresses) delete store.clubAddresses[club];
+  saveStore();
+  buildEditPanel(name);
+  if (activeTab === 'map') renderMap();
+}
+
+// ── Home address (individual override) ───────────────────────────
+function setHomeAddress(name, val) {
+  if (!store.homeAddresses) store.homeAddresses = {};
+  store.homeAddresses[name] = val;
+  saveStore();
+}
+function flushHomeAddress(name, val) {
+  if (!store.homeAddresses) store.homeAddresses = {};
+  store.homeAddresses[name] = val.trim();
+  saveStore();
+  if (activeTab === 'map') renderMap();
+}
+function clearHomeAddress(name) {
+  if (store.homeAddresses) delete store.homeAddresses[name];
+  saveStore();
+  buildEditPanel(name);
+  if (activeTab === 'map') renderMap();
 }
 
 function setLocation(name, val) {
@@ -3764,6 +3905,41 @@ function renderMapRecruits() {
     iconSize: [120, 20],
     iconAnchor: [60, 10],
   });
+  // ── Club dots (diamond shape, one per unique club with address) ──
+  const _clubsSeen = new Set();
+  all.forEach(rc => {
+    const clubAddr = getClubAddress(rc);
+    if (!clubAddr) return;
+    const clubN = getClubName(rc);
+    if (_clubsSeen.has(clubN)) return;
+    _clubsSeen.add(clubN);
+    const ll = clubAddr.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
+    if (ll) {
+      _plotClubDot([parseFloat(ll[1]), parseFloat(ll[2])], clubN);
+    } else if (_geocodeCache[clubAddr]) {
+      _plotClubDot(_geocodeCache[clubAddr], clubN);
+    } else {
+      fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(clubAddr.split(',')[0].trim())}&count=1&language=en&format=json`)
+        .then(r2=>r2.json()).then(d=>{
+          if (d.results&&d.results[0]) {
+            const p=[d.results[0].latitude,d.results[0].longitude];
+            _geocodeCache[clubAddr]=p; _plotClubDot(p,clubN);
+          }
+        }).catch(()=>{});
+    }
+  });
+
+  function _plotClubDot(pos, clubName) {
+    const icon = L.divIcon({
+      className:'',
+      html:`<div style="width:12px;height:12px;background:#ffffff33;border:2px solid #ffffffaa;transform:rotate(45deg)" title="${clubName}"></div>`,
+      iconSize:[12,12],iconAnchor:[6,6]
+    });
+    const m = L.marker(pos,{icon,zIndexOffset:-50}).addTo(leafletMap);
+    m.bindTooltip(`<b style="color:#fff;font-size:12px">🏐 ${clubName}</b>`,{direction:'top',className:'dark-popup'});
+    mapMarkers.push(m);
+  }
+
   const fsMarker = L.marker([36.8,-119.8], {icon: fsIcon, zIndexOffset: -100}).addTo(leafletMap);
   mapMarkers.push(fsMarker);
 
