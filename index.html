@@ -816,7 +816,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
       </div>
       <!-- Overlay toggles -->
       <div style="position:absolute;top:10px;right:12px;z-index:999;display:flex;flex-direction:column;gap:4px">
-        <button id="ovlAll"       onclick="toggleAllRecruits()"   class="map-ovl-btn" title="Show/hide all recruit dots">&#128203; Toggle All</button>
+        <button id="ovlAll"       onclick="toggleAllRecruits()"   class="map-ovl-btn active" title="Recruits visible — click to hide">&#127757; Recruits ON</button>
         <button id="ovlRings"     onclick="toggleOverlay('rings')"     class="map-ovl-btn">&#9711; Distance Rings</button>
         <button id="ovlCommit"    onclick="toggleOverlay('commit')"    class="map-ovl-btn">&#10141; Commit Pull</button>
         <button id="ovlTimezone"  onclick="toggleOverlay('timezone')"  class="map-ovl-btn">&#128336; Time Zones</button>
@@ -3721,8 +3721,15 @@ function toggleAllRecruits() {
   mapRecruitsVisible = !mapRecruitsVisible;
   const btn = document.getElementById('ovlAll');
   if (btn) {
-    btn.classList.toggle('active', !mapRecruitsVisible);
-    btn.textContent = mapRecruitsVisible ? '📋 Toggle All' : '📋 Recruits Hidden';
+    if (mapRecruitsVisible) {
+      btn.classList.add('active');
+      btn.textContent = '🌎 Recruits ON';
+      btn.title = 'Recruits visible — click to hide';
+    } else {
+      btn.classList.remove('active');
+      btn.textContent = '🌎 Recruits OFF';
+      btn.title = 'Recruits hidden — click to show';
+    }
   }
   // Show/hide all recruit markers (not overlay layers)
   mapMarkers.forEach(m => {
@@ -3751,21 +3758,34 @@ function drawGhostOverlay() {
     return;
   }
 
+  // Group ghosts by state key first for stacking
+  const ghostByState = {};
   ghosts.forEach(r => {
     const club = (r.club||'').toUpperCase();
     const isGermany = club.includes('GERMANY');
     const m = club.match(/\(([A-Z]{2})\)$/);
     const key = isGermany ? 'GERMANY' : (m ? m[1] : null);
     if (!key) return;
+    if (!ghostByState[key]) ghostByState[key] = [];
+    ghostByState[key].push(r);
+  });
+
+  Object.entries(ghostByState).forEach(([key, stateGhosts]) => {
     const latlon = STATE_LATLON[key];
     if (!latlon) return;
 
+    stateGhosts.forEach((r, i) => {
     const classYear = store.ghostClass&&store.ghostClass[r.name] ? store.ghostClass[r.name] : '';
     const pos = getPos(r);
 
-    // Home address override
+    // Spiral offset so multiple ghosts from same state don't stack
+    const total = stateGhosts.length;
+    const angle = (i / Math.max(total, 1)) * 2 * Math.PI;
+    const radius = total === 1 ? 0 : 0.35 + Math.floor(i / 8) * 0.3;
+    let dotPos = [latlon[0] + radius * Math.sin(angle), latlon[1] + radius * Math.cos(angle) * 1.4];
+
+    // Home address override takes priority
     const homeAddr = store.homeAddresses&&store.homeAddresses[r.name];
-    let dotPos = latlon.slice();
     if (homeAddr) {
       const ll = homeAddr.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
       if (ll) dotPos = [parseFloat(ll[1]), parseFloat(ll[2])];
@@ -3785,6 +3805,7 @@ function drawGhostOverlay() {
       <div style="margin-top:6px"><button onclick="window.hub_selectRecruit('${r.name.replace(/'/g,"\\'")}');this.closest('.leaflet-popup').querySelector('.leaflet-popup-close-button').click()" style="background:#1a2848;border:1px solid #2a4a7c;color:#7ab8d8;padding:3px 10px;border-radius:3px;font-size:10px;cursor:pointer">View Profile</button></div>
     `, {maxWidth:220, className:'dark-popup'});
     overlayLayers.push(marker);
+    });
   });
 }
 
