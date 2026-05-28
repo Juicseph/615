@@ -13,7 +13,9 @@
   document.addEventListener('mousedown', function(e) {
     if (!e.target || e.target.id !== 'panelResizer') return;
     const ep = document.getElementById('editPanel');
-    if (!ep || ep.style.display === 'none') return;
+    if (!ep) return;
+    const epRect = ep.getBoundingClientRect();
+    if (epRect.width === 0) return;
     active = true;
     startX = e.clientX;
     startW = ep.getBoundingClientRect().width;
@@ -304,7 +306,7 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .lb-stats{display:flex;gap:5px;align-items:center}
 .lb-stat{display:flex;align-items:baseline;gap:2px}
 .lb-stat-n{font-family:"Oswald",sans-serif;font-size:13px;font-weight:600;color:#c0b8b0;line-height:1}
-.lb-stat-l{font-size:8px;color:#2a4a6c;text-transform:uppercase}
+.lb-stat-l{font-size:8.5px;color:#ffffff;text-transform:uppercase;opacity:0.6}
 .lb-stat-n.done{color:#4adf7a}
 .lb-stat-n.missed{color:#c080ff}
 .lb-stat-n.vm{color:#f5c842}
@@ -2184,6 +2186,17 @@ function selectRecruit(name) {
 let scheduleCoachFilter = 'all';
 let textCoachFilter = 'all';
 
+function filterByCaller(coach) {
+  // Switch to roster tab and filter by this caller
+  const rosterBtn = document.querySelector('.tab-btn');
+  if (rosterBtn) switchTab('roster', rosterBtn);
+  activeFilter = 'caller_' + coach;
+  // Update filter buttons
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  renderList();
+  updateCounts();
+}
+
 function setScheduleCoach(coach, btn) {
   scheduleCoachFilter = coach;
   document.querySelectorAll('.sched-coach-btn').forEach(b => b.classList.remove('active'));
@@ -2954,7 +2967,7 @@ function renderLeaderboard() {
     return `<div class="lb-row">
       <div class="lb-coach">${c}</div>
       <div class="lb-stats">
-        <div class="lb-stat"><span class="lb-stat-n">${d.assigned}</span>&nbsp;<span class="lb-stat-l">asgn</span></div>
+        <div class="lb-stat" style="cursor:pointer" onclick="filterByCaller('${c}')" title="Show ${c}'s assigned recruits"><span class="lb-stat-n" style="text-decoration:underline dotted">${d.assigned}</span>&nbsp;<span class="lb-stat-l">asgn</span></div>
         <span class="lb-dot">·</span>
         <div class="lb-stat"><span class="lb-stat-n done">${d.connected}</span>&nbsp;<span class="lb-stat-l">done</span></div>
         <span class="lb-dot">·</span>
