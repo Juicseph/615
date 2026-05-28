@@ -713,6 +713,12 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
       <button class="add-btn" onclick="openAddRecruit()">&#43; Add New Recruit</button>
       <button class="bulk-mode-btn" id="bulkModeBtn" onclick="toggleBulkMode()">&#9745; Bulk Assign Caller</button>
     </div>
+    <div style="display:flex;gap:5px;padding:5px 13px 0;flex-wrap:wrap">
+      <button class="filter-btn" onclick="setFilter('all',this)" id="filterAll" style="font-size:9px">All</button>
+      <button class="filter-btn" onclick="setFilter('hot',this)" style="font-size:9px">🔥 Hot</button>
+      <button class="filter-btn" onclick="setFilter('committed',this)" style="font-size:9px">🎉 Committed</button>
+      <button class="filter-btn" onclick="setFilter('ghost',this)" style="font-size:9px">👻 Ghost</button>
+    </div>
     <div class="filter-section">
       <button class="filter-toggle" onclick="toggleFilters('mainFilters',this)">
         <span>Filters</span><span class="filter-toggle-arrow" id="mainFiltersArrow">&#9660;</span>
@@ -987,6 +993,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
           <option value="warm">&#128993; Warm / Maybe</option>
           <option value="notinterested">&#128308; Not Interested</option>
           <option value="committed">&#127881; Committed</option>
+          <option value="ghost">&#128123; Ghost (Current)</option>
         </select>
       </div>
       <div class="ar-field">
@@ -1697,6 +1704,12 @@ function buildEditPanel(name) {
         <div class="ep-label">Class Year</div>
         <input class="ep-input" type="text" placeholder="e.g. 2021, 2024..." value="${store.ghostClass&&store.ghostClass[name]||''}" oninput="setGhostClass('${nm}',this.value)" style="color:#a0d0ff">
       </div>` : ''}
+      <div class="ep-field">
+        <div class="ep-label">Position</div>
+        <select class="ep-select" onchange="setPos('${nm}',this.value)">
+          ${['L','OH','OH/RS','RS','MB','S','OPP','DS','UTL'].map(p=>`<option value="${p}" ${getPos(r)===p?'selected':''}>${p}</option>`).join('')}
+        </select>
+      </div>
       <div class="ep-field">
         <div class="ep-label">Caller</div>
         <select class="ep-select" onchange="setCaller('${nm}',this.value)">
