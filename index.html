@@ -8,32 +8,45 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js">
 // ── Panel Resizer ─────────────────────────────────────────────────
 (function() {
-  let isResizing = false, startX = 0, startW = 0;
-  document.addEventListener('DOMContentLoaded', () => {
-    const resizer = document.getElementById('panelResizer');
+  let active = false, startX = 0, startW = 0;
+
+  document.addEventListener('mousedown', function(e) {
+    if (!e.target || e.target.id !== 'panelResizer') return;
     const ep = document.getElementById('editPanel');
-    if (!resizer || !ep) return;
-    resizer.addEventListener('mousedown', e => {
-      isResizing = true;
-      startX = e.clientX;
-      startW = ep.getBoundingClientRect().width;
-      resizer.classList.add('dragging');
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-      e.preventDefault();
-    });
-    document.addEventListener('mousemove', e => {
-      if (!isResizing) return;
-      const newW = Math.max(280, Math.min(640, startW + e.clientX - startX));
-      ep.style.flex = '0 0 ' + newW + 'px';
-    });
-    document.addEventListener('mouseup', () => {
-      if (!isResizing) return;
-      isResizing = false;
-      resizer.classList.remove('dragging');
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    });
+    if (!ep || ep.style.display === 'none') return;
+    active = true;
+    startX = e.clientX;
+    startW = ep.getBoundingClientRect().width;
+    document.getElementById('panelResizer').classList.add('dragging');
+    // Full-page overlay so iframe doesn't steal mouse events
+    var ov = document.getElementById('_rszOv');
+    if (!ov) {
+      ov = document.createElement('div');
+      ov.id = '_rszOv';
+      ov.style.cssText = 'position:fixed;inset:0;z-index:2147483647;cursor:col-resize';
+      document.body.appendChild(ov);
+    }
+    ov.style.display = 'block';
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!active) return;
+    var ep = document.getElementById('editPanel');
+    if (!ep) return;
+    var w = Math.max(260, Math.min(720, startW + (e.clientX - startX)));
+    ep.style.flex = '0 0 ' + w + 'px';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mouseup', function() {
+    if (!active) return;
+    active = false;
+    var r = document.getElementById('panelResizer');
+    if (r) r.classList.remove('dragging');
+    var ov = document.getElementById('_rszOv');
+    if (ov) ov.style.display = 'none';
   });
 })();
 
@@ -157,7 +170,7 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .search-box input{width:100%;background:#0f1e38;border:1px solid #1e3560;color:#e0d8cc;padding:7px 11px;border-radius:5px;font-size:12px;font-family:"Source Sans 3",sans-serif}
 .search-box input:focus{outline:none;border-color:#3a5a9c}
 .filters{display:flex;gap:4px;padding:8px 13px;border-bottom:1px solid #192e50;flex-wrap:wrap;flex-shrink:0}
-.filter-btn{padding:3px 9px;border-radius:12px;border:1px solid #1e3560;background:#0a1628;color:#5a7ab8;font-size:10px;font-weight:600;cursor:pointer;transition:all .15s}
+.filter-btn{padding:3px 9px;border-radius:12px;border:1px solid #1e3560;background:#0a1628;color:#ffffff;font-size:10px;font-weight:600;cursor:pointer;transition:all .15s;opacity:0.7}
 .filter-btn.active{background:#172848;color:#e0d8cc;border-color:#3a5a9c}
 .recruit-list{overflow-y:auto;flex:1;min-height:0}
 .recruit-item{cursor:pointer;border-bottom:1px solid var(--border-secondary);border-left:3px solid transparent}
@@ -320,7 +333,7 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .copy-flash.show{opacity:1}
 /* ── COLLAPSIBLE FILTERS ── */
 .filter-section{border-bottom:1px solid #0f1e38;flex-shrink:0}
-.filter-toggle{width:100%;padding:7px 13px;background:none;border:none;color:#3a5a7c;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-family:"Source Sans 3",sans-serif;transition:color .15s}
+.filter-toggle{width:100%;padding:7px 13px;background:none;border:none;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-family:"Source Sans 3",sans-serif;transition:color .15s}
 .filter-toggle:hover{color:#7a9acc}
 .filter-toggle-arrow{transition:transform .2s;font-size:9px}
 .filter-toggle-arrow.open{transform:rotate(180deg)}
@@ -756,11 +769,17 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
       <button class="add-btn" onclick="openAddRecruit()">&#43; Add New Recruit</button>
       <button class="bulk-mode-btn" id="bulkModeBtn" onclick="toggleBulkMode()">&#9745; Bulk Assign Caller</button>
     </div>
-    <div style="display:flex;gap:5px;padding:5px 13px 0;flex-wrap:wrap">
-      <button class="filter-btn" onclick="setFilter('all',this)" id="filterAll" style="font-size:9px">All</button>
-      <button class="filter-btn" onclick="setFilter('hot',this)" style="font-size:9px">🔥 Hot</button>
-      <button class="filter-btn" onclick="setFilter('committed',this)" style="font-size:9px">🎉 Committed</button>
-      <button class="filter-btn" onclick="setFilter('ghost',this)" style="font-size:9px">👻 Ghost</button>
+    <div class="filter-section" style="border-bottom:none">
+      <button class="filter-toggle" onclick="toggleFilters('quickFilters',this)" style="padding:6px 13px">
+        <span id="quickFilterLabel">QUICK FILTERS</span>
+        <span class="filter-toggle-arrow" id="quickFiltersArrow">▼</span>
+      </button>
+      <div class="filter-content open" id="quickFilters" style="gap:5px;padding:5px 13px 8px">
+        <button class="filter-btn active" onclick="setFilter('all',this)" id="filterAll">All</button>
+        <button class="filter-btn" onclick="setFilter('hot',this)">🔥 Hot</button>
+        <button class="filter-btn" onclick="setFilter('committed',this)">🎉 Committed</button>
+        <button class="filter-btn" onclick="setFilter('ghost',this)">👻 Ghost</button>
+      </div>
     </div>
     <div class="filter-section">
       <button class="filter-toggle" onclick="toggleFilters('mainFilters',this)">
