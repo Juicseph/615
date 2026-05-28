@@ -1810,15 +1810,19 @@ function buildEditPanel(name) {
       <div class="ep-section-title">📍 Location</div>
       <div class="ep-field">
         <div class="ep-label">Club / Program</div>
-        <input class="ep-input" type="text" placeholder="Club name (ST)" value="${(store.clubOverrides&&store.clubOverrides[name])||r.club||''}" oninput="setClub('${nm}',this.value)" onblur="flushClub('${nm}',this.value)">
+        <div style="display:flex;gap:5px">
+          <input class="ep-input" id="clubInput_${idKey}" type="text" placeholder="Club name (ST)" value="${(store.clubOverrides&&store.clubOverrides[name])||r.club||''}" oninput="setClub('${nm}',this.value)" onkeydown="if(event.key==='Enter')flushClub('${nm}',this.value)">
+          <button onclick="flushClub('${nm}',document.getElementById('clubInput_${idKey}').value)" style="padding:6px 12px;background:#0d3a14;border:1px solid #2a7a3a;border-radius:4px;color:#4adf7a;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">Save</button>
+        </div>
       </div>
       <div class="ep-field">
         <div class="ep-label">Club Address <span style="color:#2a4a60;font-weight:400">— shared across same club</span></div>
         <div style="display:flex;gap:5px">
-          <input class="ep-input" style="flex:1;color:#c0d8b0" type="text" placeholder="123 Main St, City ST · City, ST · lat,lon"
+          <input class="ep-input" id="clubAddrInput_${idKey}" style="flex:1;color:#c0d8b0" type="text" placeholder="123 Main St, City ST · City, ST · lat,lon"
             value="${getClubAddress(r)}"
             oninput="setClubAddress('${nm}',this.value)"
-            onblur="flushClubAddress('${nm}',this.value)">
+            onkeydown="if(event.key==='Enter')flushClubAddress('${nm}',this.value)">
+          <button onclick="flushClubAddress('${nm}',document.getElementById('clubAddrInput_${idKey}').value)" style="padding:6px 10px;background:#0d3a14;border:1px solid #2a7a3a;border-radius:4px;color:#4adf7a;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">Save</button>
           <button onclick="clearClubAddress('${nm}')" style="padding:6px 8px;background:#0d1a2e;border:1px solid #1e3560;border-radius:4px;color:#3a5a7c;cursor:pointer;font-size:10px;white-space:nowrap;flex-shrink:0">✕</button>
         </div>
         <div style="font-size:9px;color:#2a4a60;margin-top:2px">${getClubAddress(r)?'📍 Custom pin · applies to all recruits at this club':'Using state from club name by default'}</div>
@@ -1826,10 +1830,11 @@ function buildEditPanel(name) {
       <div class="ep-field">
         <div class="ep-label">Home Address <span style="color:#2a4a60;font-weight:400">— individual pin override</span></div>
         <div style="display:flex;gap:5px">
-          <input class="ep-input" style="flex:1;color:#b0d8c0" type="text" placeholder="123 Home St, City ST · lat,lon"
+          <input class="ep-input" id="homeInput_${idKey}" style="flex:1;color:#b0d8c0" type="text" placeholder="123 Home St, City ST · lat,lon"
             value="${store.homeAddresses&&store.homeAddresses[name]||''}"
             oninput="setHomeAddress('${nm}',this.value)"
-            onblur="flushHomeAddress('${nm}',this.value)">
+            onkeydown="if(event.key==='Enter')flushHomeAddress('${nm}',this.value)">
+          <button onclick="flushHomeAddress('${nm}',document.getElementById('homeInput_${idKey}').value)" style="padding:6px 10px;background:#0d3a14;border:1px solid #2a7a3a;border-radius:4px;color:#4adf7a;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">Save</button>
           <button onclick="clearHomeAddress('${nm}')" style="padding:6px 8px;background:#0d1a2e;border:1px solid #1e3560;border-radius:4px;color:#3a5a7c;cursor:pointer;font-size:10px;white-space:nowrap;flex-shrink:0">✕</button>
         </div>
         <div style="font-size:9px;color:#2a4a60;margin-top:2px">${store.homeAddresses&&store.homeAddresses[name]?'🏠 Home pin set — overrides club address on map':'Falls back to club address'}</div>
