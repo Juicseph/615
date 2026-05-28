@@ -1810,7 +1810,7 @@ function buildEditPanel(name) {
       <div class="ep-section-title">📍 Location</div>
       <div class="ep-field">
         <div class="ep-label">Club / Program</div>
-        <input class="ep-input" type="text" placeholder="Club name (ST)" value="${(store.clubOverrides&&store.clubOverrides[name])||r.club||''}" onblur="setClub('${nm}',this.value)">
+        <input class="ep-input" type="text" placeholder="Club name (ST)" value="${(store.clubOverrides&&store.clubOverrides[name])||r.club||''}" oninput="setClub('${nm}',this.value)" onblur="flushClub('${nm}',this.value)">
       </div>
       <div class="ep-field">
         <div class="ep-label">Club Address <span style="color:#2a4a60;font-weight:400">— shared across same club</span></div>
@@ -2501,11 +2501,20 @@ function setCampNote(name, val) {
   }
 }
 function setClub(name, val) {
+  // Save on every keystroke — no re-render while typing
+  if (!store.clubOverrides) store.clubOverrides = {};
+  store.clubOverrides[name] = val;
+  saveStore();
+}
+function flushClub(name, val) {
+  // On blur: save, update sidebar club line, refresh map if needed
   if (!store.clubOverrides) store.clubOverrides = {};
   store.clubOverrides[name] = val.trim();
   saveStore();
-  reRender(name);
-  // Refresh map if ghost overlay is active (club name determines state dot)
+  // Update sidebar club text in-place
+  const idKey = esc(name);
+  const clubEl = document.querySelector('#item_' + idKey + ' .r-club');
+  if (clubEl) clubEl.textContent = val.trim();
   if (activeTab === 'map' && mapOverlays.ghost) renderMap();
 }
 
@@ -3167,20 +3176,21 @@ function flushHomeAddress(name, val) {
   if (!store.homeAddresses) store.homeAddresses = {};
   const trimmed = val.trim();
   store.homeAddresses[name] = trimmed;
-  // Geocode if it's a city/address string so map shows correct location
-  if (trimmed && !trimmed.match(/^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$/)) {
-    fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(trimmed.split(',')[0].trim()) + '&count=1&language=en&format=json')
-      .then(r => r.json()).then(d => {
-        if (d.results && d.results[0]) {
-          _geocodeCache[trimmed] = [d.results[0].latitude, d.results[0].longitude];
-        }
-        if (activeTab === 'map') renderMap();
-      }).catch(() => { if (activeTab === 'map') renderMap(); });
-  } else {
-    saveStore();
-    if (activeTab === 'map') renderMap();
-  }
   saveStore();
+  if (!trimmed) { if (activeTab === 'map') renderMap(); return; }
+  // Check if lat,lon
+  if (trimmed.match(/^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$/)) {
+    if (activeTab === 'map') renderMap();
+    return;
+  }
+  // Geocode city/address string
+  fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(trimmed.split(',')[0].trim()) + '&count=1&language=en&format=json')
+    .then(r => r.json()).then(d => {
+      if (d.results && d.results[0]) {
+        _geocodeCache[trimmed] = [d.results[0].latitude, d.results[0].longitude];
+      }
+      if (activeTab === 'map') renderMap();
+    }).catch(() => { if (activeTab === 'map') renderMap(); });
 }
 function clearHomeAddress(name) {
   if (store.homeAddresses) { delete store.homeAddresses[name]; delete _geocodeCache[store.homeAddresses[name]||'']; }
