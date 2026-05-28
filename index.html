@@ -52,6 +52,51 @@
   });
 })();
 
+
+let _fsLevel = parseInt(localStorage.getItem('fsLevel')||'0');
+
+function applyFontSize() {
+  const scale = 1 + (_fsLevel * 0.1);
+  const pct = Math.round(scale * 100);
+  const lbl = document.getElementById('fsLabel');
+  if (lbl) lbl.textContent = pct + '%';
+  // Scale welcome roster cards
+  document.documentElement.style.setProperty('--fs-scale', scale);
+  // Directly update wr-card font sizes
+  const base = 12 * scale;
+  const meta = 9 * scale;
+  const club = 9 * scale;
+  const posLabel = 10 * scale;
+  const styleEl = document.getElementById('_fsStyle');
+  const el = styleEl || (() => { const s = document.createElement('style'); s.id = '_fsStyle'; document.head.appendChild(s); return s; })();
+  el.textContent = `
+    .wr-card-name { font-size: ${base}px !important; }
+    .wr-card-meta { font-size: ${meta}px !important; }
+    .wr-card-club { font-size: ${club}px !important; }
+    .wr-pos-label { font-size: ${posLabel}px !important; }
+    .wr-card { padding: ${6*scale}px ${8*scale}px !important; }
+    .wr-cards { gap: ${5*scale}px !important; grid-template-columns: repeat(auto-fill, minmax(${170*scale}px, 1fr)) !important; }
+    .ep-section-title { font-size: ${8.5*scale}px !important; }
+    .ep-label { font-size: ${8.5*scale}px !important; }
+    .ep-input, .ep-select, .ep-note-text { font-size: ${11.5*scale}px !important; }
+    .note-entry-body { font-size: ${11*scale}px !important; }
+    .r-name { font-size: ${12*scale}px !important; }
+    .r-club { font-size: ${9*scale}px !important; }
+    .lb-coach { font-size: ${13*scale}px !important; }
+    .lb-stat-n { font-size: ${12*scale}px !important; }
+    .lb-stat-l { font-size: ${8*scale}px !important; }
+  `;
+  localStorage.setItem('fsLevel', _fsLevel);
+}
+
+function adjustFontSize(dir) {
+  _fsLevel = Math.max(-2, Math.min(5, _fsLevel + dir));
+  applyFontSize();
+}
+
+// Apply on load
+document.addEventListener('DOMContentLoaded', applyFontSize);
+
 </script>
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap");
@@ -59,6 +104,7 @@
 html{height:100%;overflow:hidden}
 /* ── THEMES ── */
 :root {
+  --fs-scale: 1;
   --bg-base:#07111f;--bg-panel:#0a1628;--bg-card:#060e1c;--bg-input:#060e1c;
   --border-primary:#192e50;--border-secondary:#0f1e38;--border-input:#1e3560;
   --text-primary:#e0d8cc;--text-secondary:#8ab0c8;--text-muted:#3a5a7c;
@@ -695,13 +741,13 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 
 #welcomeRoster{display:flex;flex-direction:column;gap:16px}
 .wr-pos-group{display:flex;flex-direction:column;gap:0}
-.wr-pos-label{font-family:"Oswald",sans-serif;font-size:10px;font-weight:700;color:#b8001e;letter-spacing:2px;text-transform:uppercase;padding:0 0 6px;border-bottom:1px solid #0f1e38;margin-bottom:6px}
+.wr-pos-label{font-family:"Oswald",sans-serif;font-size:12px;font-weight:700;color:#b8001e;letter-spacing:2px;text-transform:uppercase;padding:0 0 6px;border-bottom:1px solid #0f1e38;margin-bottom:6px}
 .wr-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px}
-.wr-card{background:#060e1c;border:1px solid #0f1e38;border-left:3px solid #1a3050;border-radius:4px;padding:8px 10px;cursor:pointer;transition:all .15s;position:relative}
+.wr-card{background:#060e1c;border:1px solid #0f1e38;border-left:3px solid #1a3050;border-radius:4px;padding:10px 12px;cursor:pointer;transition:all .15s;position:relative}
 .wr-card:hover{background:#0d1e38;border-color:#2a4a7c}
 .wr-card.active{border-left-color:#b8001e;background:#0d1e38}
 .wr-card.has-guide{border-left-color:#2a7a4a}
-.wr-card-name{font-size:12px;font-weight:700;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.wr-card-name{font-size:14px;font-weight:700;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
 .wr-card-meta{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .wr-card-club{font-size:9px;color:#6a8ab0;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wr-card-badges{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap}
@@ -726,6 +772,11 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
     <span id="syncStatusDot" style="font-size:11px;cursor:pointer;padding:4px 8px;background:rgba(0,0,0,.2);border-radius:4px;border:1px solid #1a3050" onclick="openSyncModal()" title="Live Sync Settings">
       <span id="syncStatusLabel" style="color:#3a5a7c">○ Sync Off</span>
     </span>
+    <div style="display:flex;align-items:center;gap:0;background:#0a1628;border:1px solid #1e3050;border-radius:5px;overflow:hidden">
+      <button onclick="adjustFontSize(-1)" style="padding:6px 10px;background:none;border:none;color:#ffffff;cursor:pointer;font-size:14px;font-weight:700;line-height:1" title="Decrease font size">A−</button>
+      <span id="fsLabel" style="font-size:10px;color:#3a5a7c;padding:0 4px;min-width:28px;text-align:center">100%</span>
+      <button onclick="adjustFontSize(1)" style="padding:6px 10px;background:none;border:none;color:#ffffff;cursor:pointer;font-size:14px;font-weight:700;line-height:1" title="Increase font size">A+</button>
+    </div>
     <button class="hdr-btn" onclick="exportData()" title="Export all data to backup file">&#8595; Export</button>
     <label class="hdr-btn" title="Import data from backup file" style="cursor:pointer">&#8593; Import<input type="file" accept=".json" onchange="importData(this)" style="display:none"></label>
     <button class="hdr-btn" onclick="openThemePicker()" title="Change theme" style="font-size:14px;padding:4px 8px">&#127775;</button>
