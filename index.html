@@ -115,7 +115,7 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 #tabRoster .welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
 #tabRoster.recruit-open .welcome{display:none}
 
-#editPanel{flex:0 0 360px;display:none;flex-direction:column;overflow-y:auto;background:var(--bg-card);border-right:1px solid var(--border-primary);height:100%}
+#editPanel{flex:0 0 420px;display:none;flex-direction:column;overflow-y:auto;background:var(--bg-card);border-right:1px solid var(--border-primary);height:100%}
 #editPanel.visible{display:flex}
 #guideContainer{display:none;flex:1;min-width:0;height:100%}
 #guideContainer.visible{display:block}
@@ -177,8 +177,8 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .recruit-item.active .r-status-row{display:none}
 .r-name{font-size:13px;font-weight:600;color:#ccc4bc;margin-bottom:3px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .r-meta{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:2px}
-.r-club{font-size:9px;color:#243a58}
-.section-label{padding:8px 13px 3px;font-size:9px;font-weight:700;color:#243a58;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:5px}
+.r-club{font-size:10px;color:#6a8ab0;font-weight:500}
+.section-label{padding:8px 13px 3px;font-size:9px;font-weight:700;color:#ffffff;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:5px}
 .count-badge{background:#b8001e;color:#fff;border-radius:8px;padding:1px 5px;font-size:8px;font-weight:700}
 .field-label{font-size:9px;font-weight:700;color:#3a4a5c;letter-spacing:1px;text-transform:uppercase;margin-top:4px;margin-bottom:1px}
 .ctrl-select{width:100%;background:#0d1a2e;border:1px solid #1e3560;color:#e0d8cc;padding:5px 8px;border-radius:4px;font-size:11px;font-family:"Source Sans 3",sans-serif;cursor:pointer}
@@ -595,9 +595,9 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 .ep-name{font-family:"Oswald",sans-serif;font-size:22px;font-weight:700;color:var(--text-primary);line-height:1.1;margin-bottom:2px}
 .ep-pos-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
 .ep-section{padding:12px 16px;border-bottom:1px solid var(--border-secondary)}
-.ep-section-title{font-size:9px;font-weight:700;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.ep-section-title{font-size:9px;font-weight:700;color:#ffffff;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;opacity:0.6}
 .ep-field{margin-bottom:8px}
-.ep-label{font-size:9px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
+.ep-label{font-size:9px;color:#ffffff;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;opacity:0.7}
 .ep-input{width:100%;background:var(--bg-input);border:1px solid var(--border-input);color:var(--text-primary);padding:7px 10px;border-radius:5px;font-size:12px;font-family:"Source Sans 3",sans-serif}
 .ep-input:focus{outline:none;border-color:#3a5a9c}
 .ep-select{width:100%;background:var(--bg-input);border:1px solid var(--border-input);color:var(--text-primary);padding:7px 10px;border-radius:5px;font-size:12px;font-family:"Source Sans 3",sans-serif;cursor:pointer}
@@ -1750,7 +1750,7 @@ function buildEditPanel(name) {
       </div>
       <div class="ep-field">
         <div class="ep-label">Call Time (PST)</div>
-        <input class="ep-input" type="text" placeholder="e.g. 10:00 AM" value="${callTime}" onblur="setCallTime('${nm}',this.value)">
+        <input class="ep-input" type="text" placeholder="e.g. 10:00 AM  (clear to delete)" value="${callTime}" onblur="setCallTime('${nm}',this.value)">
       </div>
       <div class="ep-field">
         <div class="ep-label">Call Date</div>
@@ -2042,7 +2042,12 @@ function setCaller(name, val) {
 }
 
 function setCallTime(name, val) {
-  if (!val || !val.trim()) return;
+  if (!val || !val.trim()) {
+    delete store.callTimes[name]; saveStore();
+    const tb = document.getElementById('tbadge_' + esc(name));
+    if (tb) { tb.textContent = ''; tb.style.display = 'none'; }
+    return;
+  }
   store.callTimes[name] = val.trim(); saveStore();
   // Update sidebar badge in-place
   const tb = document.getElementById('tbadge_' + esc(name));
@@ -2108,10 +2113,19 @@ function selectRecruit(name) {
 }
 
 // ── Schedule view ─────────────────────────────────────────────────────────────
+let scheduleCoachFilter = 'all';
+function setScheduleCoach(coach, btn) {
+  scheduleCoachFilter = coach;
+  document.querySelectorAll('.sched-coach-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSchedule();
+}
+
 function renderSchedule() {
   const all = getRecruits();
-  const scheduled = all.filter(r => store.callTimes[r.name] || store.callDates[r.name]);
-  const unscheduled = all.filter(r => !store.callTimes[r.name] && !store.callDates[r.name]);
+  const filterFn = r => scheduleCoachFilter === 'all' || store.callers[r.name] === scheduleCoachFilter;
+  const scheduled = all.filter(r => (store.callTimes[r.name] || store.callDates[r.name]) && filterFn(r));
+  const unscheduled = all.filter(r => !store.callTimes[r.name] && !store.callDates[r.name] && filterFn(r));
 
   // Parse time for sorting
   function parseTime(t) {
@@ -2138,7 +2152,11 @@ function renderSchedule() {
   const hotSched = scheduled.filter(r => r.hot).length;
 
   let html = `<h2>&#128197; Call Schedule</h2>
-  <div class="sch-sub">${totalSched} call${totalSched!==1?'s':''} scheduled &nbsp;&middot;&nbsp; ${unscheduled.length} unscheduled</div>`;
+  <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+    <button class="sched-coach-btn${scheduleCoachFilter==='all'?' active':''}" onclick="setScheduleCoach('all',this)">All Coaches</button>
+    ${['OJ','Leisa','Jerome','Kelsey'].map(c=>`<button class="sched-coach-btn${scheduleCoachFilter===c?' active':''}" onclick="setScheduleCoach('${c}',this)">${c}</button>`).join('')}
+  </div>
+  <div class="sch-sub">${totalSched} call${totalSched!==1?'s':''} scheduled &nbsp;&middot;&nbsp; ${unscheduled.length} unscheduled${scheduleCoachFilter!=='all'?' · '+scheduleCoachFilter+' only':''}</div>`;
 
   if (totalSched > 0) {
     html += `<div class="sch-summary">
