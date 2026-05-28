@@ -2008,6 +2008,7 @@ function setGhostClass(name, val) {
   if (!store.ghostClass) store.ghostClass = {};
   store.ghostClass[name] = val.trim();
   saveStore();
+  if (activeTab === 'map' && mapOverlays.ghost) renderMap();
 }
 
 function setCaller(name, val) {
@@ -2504,6 +2505,8 @@ function setClub(name, val) {
   store.clubOverrides[name] = val.trim();
   saveStore();
   reRender(name);
+  // Refresh map if ghost overlay is active (club name determines state dot)
+  if (activeTab === 'map' && mapOverlays.ghost) renderMap();
 }
 
 function setHudl(name,val) {
@@ -3142,6 +3145,7 @@ function flushClubAddress(name, val) {
   store.clubAddresses[club] = val.trim();
   saveStore();
   if (activeTab === 'map') renderMap();
+  else _geocodeCache = Object.assign({}, _geocodeCache); // keep cache
 }
 function clearClubAddress(name) {
   const r = getRecruits().find(x => x.name === name);
@@ -3161,12 +3165,25 @@ function setHomeAddress(name, val) {
 }
 function flushHomeAddress(name, val) {
   if (!store.homeAddresses) store.homeAddresses = {};
-  store.homeAddresses[name] = val.trim();
+  const trimmed = val.trim();
+  store.homeAddresses[name] = trimmed;
+  // Geocode if it's a city/address string so map shows correct location
+  if (trimmed && !trimmed.match(/^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$/)) {
+    fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(trimmed.split(',')[0].trim()) + '&count=1&language=en&format=json')
+      .then(r => r.json()).then(d => {
+        if (d.results && d.results[0]) {
+          _geocodeCache[trimmed] = [d.results[0].latitude, d.results[0].longitude];
+        }
+        if (activeTab === 'map') renderMap();
+      }).catch(() => { if (activeTab === 'map') renderMap(); });
+  } else {
+    saveStore();
+    if (activeTab === 'map') renderMap();
+  }
   saveStore();
-  if (activeTab === 'map') renderMap();
 }
 function clearHomeAddress(name) {
-  if (store.homeAddresses) delete store.homeAddresses[name];
+  if (store.homeAddresses) { delete store.homeAddresses[name]; delete _geocodeCache[store.homeAddresses[name]||'']; }
   saveStore();
   buildEditPanel(name);
   if (activeTab === 'map') renderMap();
