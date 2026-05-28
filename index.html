@@ -116,7 +116,7 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 #tabRoster .welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
 #tabRoster.recruit-open .welcome{display:none}
 
-#editPanel{display:none;flex-direction:column;overflow-y:auto;background:#07111f;border-right:1px solid #1a3050}
+#editPanel{display:none;flex-direction:column;overflow-y:auto;background:var(--bg-card);border-right:1px solid var(--border-primary)}
 #editPanel.visible{display:flex;flex-direction:column;overflow-y:auto}
 #guideContainer{display:none}
 #guideContainer.visible{display:block;height:100%;width:100%}
@@ -592,33 +592,33 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 
 #editPanel{display:none;flex-direction:column;overflow-y:auto;height:100%;background:#07111f;border-right:1px solid #192e50}
 #editPanel.visible{display:flex;flex-direction:column;overflow-y:auto}
-.ep-header{padding:16px 18px 12px;border-bottom:1px solid #1a3050;flex-shrink:0;background:#060e1c}
-.ep-name{font-family:"Oswald",sans-serif;font-size:22px;font-weight:700;color:#fff;line-height:1.1;margin-bottom:2px}
+.ep-header{padding:16px 18px 12px;border-bottom:1px solid var(--border-primary);flex-shrink:0;background:var(--bg-panel)}
+.ep-name{font-family:"Oswald",sans-serif;font-size:22px;font-weight:700;color:var(--text-primary);line-height:1.1;margin-bottom:2px}
 .ep-pos-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
-.ep-section{padding:12px 16px;border-bottom:1px solid #0f1e38}
-.ep-section-title{font-size:9px;font-weight:700;color:#3a5a7c;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.ep-section{padding:12px 16px;border-bottom:1px solid var(--border-secondary)}
+.ep-section-title{font-size:9px;font-weight:700;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
 .ep-field{margin-bottom:8px}
-.ep-label{font-size:9px;color:#3a5a7c;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
-.ep-input{width:100%;background:#0a1628;border:1px solid #1a3050;color:#e0d8cc;padding:7px 10px;border-radius:5px;font-size:12px;font-family:"Source Sans 3",sans-serif}
+.ep-label{font-size:9px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
+.ep-input{width:100%;background:var(--bg-input);border:1px solid var(--border-input);color:var(--text-primary);padding:7px 10px;border-radius:5px;font-size:12px;font-family:"Source Sans 3",sans-serif}
 .ep-input:focus{outline:none;border-color:#3a5a9c}
-.ep-select{width:100%;background:#0a1628;border:1px solid #1a3050;color:#e0d8cc;padding:7px 10px;border-radius:5px;font-size:12px;font-family:"Source Sans 3",sans-serif;cursor:pointer}
+.ep-select{width:100%;background:var(--bg-input);border:1px solid var(--border-input);color:var(--text-primary);padding:7px 10px;border-radius:5px;font-size:12px;font-family:"Source Sans 3",sans-serif;cursor:pointer}
 .ep-select:focus{outline:none;border-color:#3a5a9c}
-.ep-phone-link{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#5aabff;text-decoration:none;padding:7px 10px;background:#050e1c;border:1px solid #1a3050;border-radius:5px}
+.ep-phone-link{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--accent-blue);text-decoration:none;padding:7px 10px;background:var(--bg-card);border:1px solid var(--border-primary);border-radius:5px}
 .ep-phone-link:hover{background:#0a1828;border-color:#2a5a9c}
 .ep-outcome-row{display:flex;gap:6px;margin-top:4px}
 .ep-outcome-btn{flex:1;padding:8px 4px;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:"Source Sans 3",sans-serif;border:1px solid;text-align:center;transition:all .15s}
-.ep-outcome-btn.connected{background:#041008;border-color:#2a7a3a;color:#4adf7a}
+.ep-outcome-btn.connected{background:rgba(74,223,122,.08);border-color:#2a7a3a;color:#4adf7a}
 .ep-outcome-btn.connected:hover{background:#072010}
-.ep-outcome-btn.noanswer{background:#100820;border-color:#5a3a8a;color:#c080ff}
+.ep-outcome-btn.noanswer{background:rgba(192,128,255,.08);border-color:#5a3a8a;color:#c080ff}
 .ep-outcome-btn.noanswer:hover{background:#180a2a}
-.ep-outcome-btn.voicemail{background:#100800;border-color:#7a5a20;color:#f5c842}
+.ep-outcome-btn.voicemail{background:rgba(245,200,66,.08);border-color:#7a5a20;color:#f5c842}
 .ep-outcome-btn.voicemail:hover{background:#1a1000}
-.ep-note-log{background:#050e1c;border:1px solid #0f1e38;border-radius:5px;padding:6px 8px;max-height:140px;overflow-y:auto;margin-bottom:6px;min-height:36px}
-.ep-note-author{background:#0a1628;border:1px solid #1a3050;color:#ffcc60;padding:5px 8px;border-radius:4px;font-size:11px;font-family:"Source Sans 3",sans-serif;margin-bottom:5px;width:100%}
+.ep-note-log{background:var(--bg-card);border:1px solid var(--border-secondary);border-radius:5px;padding:6px 8px;max-height:140px;overflow-y:auto;margin-bottom:6px;min-height:36px}
+.ep-note-author{background:var(--bg-input);border:1px solid var(--border-input);color:var(--accent-gold);padding:5px 8px;border-radius:4px;font-size:11px;font-family:"Source Sans 3",sans-serif;margin-bottom:5px;width:100%}
 .ep-note-author:focus{outline:none;border-color:#5a4a20}
-.ep-note-text{width:100%;background:#0a1628;border:1px solid #1a3050;color:#c0d8e8;padding:6px 8px;border-radius:4px;font-size:11px;font-family:"Source Sans 3",sans-serif;resize:none;min-height:52px}
+.ep-note-text{width:100%;background:var(--bg-input);border:1px solid var(--border-input);color:var(--text-secondary);padding:6px 8px;border-radius:4px;font-size:11px;font-family:"Source Sans 3",sans-serif;resize:none;min-height:52px}
 .ep-note-text:focus{outline:none;border-color:#3a5a9c}
-.ep-note-add{width:100%;padding:6px;background:#071428;border:1px solid #1e3560;border-radius:4px;color:#5aabff;font-size:11px;font-weight:700;cursor:pointer;font-family:"Source Sans 3",sans-serif;margin-top:4px}
+.ep-note-add{width:100%;padding:6px;background:var(--bg-panel);border:1px solid var(--border-input);border-radius:4px;color:var(--accent-blue);font-size:11px;font-weight:700;cursor:pointer;font-family:"Source Sans 3",sans-serif;margin-top:4px}
 .ep-note-add:hover{background:#0a1e40;border-color:#3a5a9c}
 .ep-close-btn{width:100%;padding:7px;background:#0d0810;border:1px solid #3a1020;border-radius:5px;color:#ff7088;font-size:11px;font-weight:700;cursor:pointer;font-family:"Source Sans 3",sans-serif;margin-top:auto;flex-shrink:0}
 .ep-close-btn:hover{background:#180a14}
@@ -1354,11 +1354,30 @@ function switchTab(tab, btn) {
   document.getElementById('tabDepth').style.display       = tab==='depth'       ?'flex':'none';
   document.getElementById('tabCommand').style.display     = tab==='command'     ?'flex':'none';
   document.getElementById('tabWall').style.display        = tab==='wall'        ?'flex':'none';
-  // 3-col layout only on roster tab when a recruit is open
+  // Manage roster 3-col layout and welcome screen
   const _main = document.querySelector('.main');
-  if (_main) {
-    if (tab === 'roster' && activeRecruit) _main.classList.add('recruit-open');
-    else _main.classList.remove('recruit-open');
+  const _ep   = document.getElementById('editPanel');
+  const _gc   = document.getElementById('guideContainer');
+  const _wm   = document.getElementById('welcomeMsg');
+  if (tab === 'roster') {
+    if (activeRecruit) {
+      // Recruit open — show 3-col
+      if (_main) _main.classList.add('recruit-open');
+      if (_ep)   _ep.style.display = 'flex';
+      if (_gc)   _gc.style.display = 'block';
+      if (_wm)   { _wm.style.display = 'none'; _wm.classList.add('hidden'); }
+    } else {
+      // No recruit — show welcome screen
+      if (_main) _main.classList.remove('recruit-open');
+      if (_ep)   _ep.style.display = 'none';
+      if (_gc)   _gc.style.display = 'none';
+      if (_wm)   { _wm.style.display = 'flex'; _wm.classList.remove('hidden'); }
+    }
+  } else {
+    // Non-roster tabs — collapse edit panel, don't touch welcome (it's in tabRoster which is hidden)
+    if (_main) _main.classList.remove('recruit-open');
+    if (_ep)   _ep.style.display = 'none';
+    if (_gc)   _gc.style.display = 'none';
   }
   if (tab==='rosterplan') {
     document.getElementById('tabRosterPlan').style.display = 'flex';
@@ -1845,9 +1864,11 @@ function closeGuide() {
   // Clear guide
   const gc = document.getElementById('guideContainer');
   if (gc) { gc.classList.remove('visible'); gc.innerHTML = ''; gc.style.display = 'none'; }
-  // Show welcome
-  const wm = document.getElementById('welcomeMsg');
-  if (wm) { wm.style.display = 'flex'; wm.classList.remove('hidden'); }
+  // Show welcome only if on roster tab
+  if (activeTab === 'roster') {
+    const wm = document.getElementById('welcomeMsg');
+    if (wm) { wm.style.display = 'flex'; wm.classList.remove('hidden'); }
+  }
   renderList();
   const wt = document.getElementById('whisperToggle');
   if (wt) wt.style.display = 'none';
@@ -2316,7 +2337,7 @@ function deleteRecruit(name) {
   saveStore();
   if (activeRecruit === name) {
     activeRecruit = null;
-    const _wm = document.getElementById('welcomeMsg'); if(_wm){_wm.style.display='flex';_wm.classList.remove('hidden');}
+    if(activeTab==='roster'){const _wm=document.getElementById('welcomeMsg');if(_wm){_wm.style.display='flex';_wm.classList.remove('hidden');}}
     document.getElementById('guideContainer').style.display = 'none';
     const wt = document.getElementById('whisperToggle');
     if (wt) wt.style.display = 'none';
