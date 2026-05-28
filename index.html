@@ -816,6 +816,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
       </div>
       <!-- Overlay toggles -->
       <div style="position:absolute;top:10px;right:12px;z-index:999;display:flex;flex-direction:column;gap:4px">
+        <button id="ovlAll"       onclick="toggleAllRecruits()"   class="map-ovl-btn" title="Show/hide all recruit dots">&#128203; Toggle All</button>
         <button id="ovlRings"     onclick="toggleOverlay('rings')"     class="map-ovl-btn">&#9711; Distance Rings</button>
         <button id="ovlCommit"    onclick="toggleOverlay('commit')"    class="map-ovl-btn">&#10141; Commit Pull</button>
         <button id="ovlTimezone"  onclick="toggleOverlay('timezone')"  class="map-ovl-btn">&#128336; Time Zones</button>
@@ -3715,50 +3716,75 @@ function drawTimezoneOverlay() {
 }
 
 // ── Overlay: Ghost Dots (previous class) ─────────────────────────────────────
+let mapRecruitsVisible = true;
+function toggleAllRecruits() {
+  mapRecruitsVisible = !mapRecruitsVisible;
+  const btn = document.getElementById('ovlAll');
+  if (btn) {
+    btn.classList.toggle('active', !mapRecruitsVisible);
+    btn.textContent = mapRecruitsVisible ? '📋 Toggle All' : '📋 Recruits Hidden';
+  }
+  // Show/hide all recruit markers (not overlay layers)
+  mapMarkers.forEach(m => {
+    if (m._recruitName) {
+      if (mapRecruitsVisible) m.addTo(leafletMap);
+      else leafletMap.removeLayer(m);
+    }
+  });
+}
+
 function drawGhostOverlay() {
-  // Ghost dots use store.ghostRecruits — coaches manually enter previous class
-  const ghosts = store.ghostRecruits || [];
+  // Use recruits with ghost status from our roster
+  const all = getRecruits();
+  const ghosts = all.filter(r => (store.statuses[r.name]||'') === 'ghost');
+
   if (ghosts.length === 0) {
-    // Show instruction popup near Fresno
     const icon = L.divIcon({
-      className:'', iconSize:[220,40], iconAnchor:[110,0],
-      html:`<div style="background:rgba(6,14,28,.9);border:1px solid #2a4a7c;border-radius:5px;padding:6px 10px;font-size:10px;color:#5a8ab0;text-align:center">
-        <div style="color:#7a9acc;font-weight:700;margin-bottom:2px">👻 Ghost Dots</div>
-        Add previous class data via Export/Import or enter recruits with status "ghost"
+      className:'', iconSize:[220,44], iconAnchor:[110,0],
+      html:`<div style="background:rgba(6,14,28,.9);border:1px solid #2a4a7c;border-radius:5px;padding:8px 12px;font-size:10px;color:#5a8ab0;text-align:center">
+        <div style="color:#7a9acc;font-weight:700;margin-bottom:3px">👻 Ghost Dots</div>
+        Add recruits with status "Ghost" to see<br>previous class recruiting footprint
       </div>`
     });
-    const hint = L.marker([40, -98], {icon, interactive:false}).addTo(leafletMap);
-    overlayLayers.push(hint);
+    const m = L.marker([36.7, -119.8], {icon, zIndexOffset:999}).addTo(leafletMap);
+    overlayLayers.push(m);
     return;
   }
-  ghosts.forEach((r, i) => {
+
+  ghosts.forEach(r => {
     const club = (r.club||'').toUpperCase();
+    const isGermany = club.includes('GERMANY');
     const m = club.match(/\(([A-Z]{2})\)$/);
-    const st = m ? m[1] : null;
-    if (!st || !STATE_LATLON[st]) return;
-    const [bx, by] = STATE_LATLON[st];
-    const angle = (i / Math.max(ghosts.length,1)) * Math.PI * 2;
-    const pos = [bx + 0.3*Math.sin(angle), by + 0.5*Math.cos(angle)];
-    const ghost = L.circleMarker(pos, {
-      radius:7, color:'rgba(200,200,255,0.3)', weight:1,
-      fillColor:'rgba(200,200,255,0.12)', fillOpacity:1, interactive:false,
-      dashArray:'3 3',
-    }).addTo(leafletMap);
-    overlayLayers.push(ghost);
-  });
-  // Also show all deleted/old recruits from store as ghosts
-  const oldRecruits = Object.keys(store.deleted||{});
-  oldRecruits.slice(0, 50).forEach((name, i) => {
-    // Try to find their old club from store
-    const pos2 = store.locations && store.locations[name];
-    if (!pos2) return;
-    const ll = resolveLatLon(pos2);
-    if (!ll) return;
-    const g2 = L.circleMarker(ll, {
-      radius:5, color:'rgba(180,180,220,0.25)', weight:1,
-      fillColor:'rgba(180,180,220,0.08)', fillOpacity:1, interactive:false,
-    }).addTo(leafletMap);
-    overlayLayers.push(g2);
+    const key = isGermany ? 'GERMANY' : (m ? m[1] : null);
+    if (!key) return;
+    const latlon = STATE_LATLON[key];
+    if (!latlon) return;
+
+    const classYear = store.ghostClass&&store.ghostClass[r.name] ? store.ghostClass[r.name] : '';
+    const pos = getPos(r);
+
+    // Home address override
+    const homeAddr = store.homeAddresses&&store.homeAddresses[r.name];
+    let dotPos = latlon.slice();
+    if (homeAddr) {
+      const ll = homeAddr.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
+      if (ll) dotPos = [parseFloat(ll[1]), parseFloat(ll[2])];
+      else if (_geocodeCache[homeAddr]) dotPos = _geocodeCache[homeAddr];
+    }
+
+    const icon = L.divIcon({
+      className:'',
+      html:`<div style="width:12px;height:12px;background:#ffffff;box-shadow:0 0 14px 5px rgba(255,255,255,0.85);transform:rotate(45deg);border:1px solid rgba(255,255,255,0.9);cursor:pointer"></div>`,
+      iconSize:[12,12], iconAnchor:[6,6]
+    });
+    const marker = L.marker(dotPos, {icon, zIndexOffset:200}).addTo(leafletMap);
+    marker.bindPopup(`
+      <div style="font-family:'Oswald',sans-serif;font-size:14px;color:#fff;margin-bottom:3px">👻 ${r.name}</div>
+      <div style="font-size:10px;color:#5a8ab0">${pos} · ${r.club||''}</div>
+      ${classYear ? '<div style="font-size:10px;color:#a0c0ff;margin-top:3px">Class of ' + classYear + '</div>' : ''}
+      <div style="margin-top:6px"><button onclick="window.hub_selectRecruit('${r.name.replace(/'/g,"\\'")}');this.closest('.leaflet-popup').querySelector('.leaflet-popup-close-button').click()" style="background:#1a2848;border:1px solid #2a4a7c;color:#7ab8d8;padding:3px 10px;border-radius:3px;font-size:10px;cursor:pointer">View Profile</button></div>
+    `, {maxWidth:220, className:'dark-popup'});
+    overlayLayers.push(marker);
   });
 }
 
@@ -4087,14 +4113,14 @@ function renderMapRecruits() {
       const st = store.statuses[r.name]||'';
       const interest = parseFloat(r.interest)||0;
       const isGhost = st === 'ghost';
-      // Only show ghost dots if ghost filter is active, otherwise skip
-      if (isGhost && activeFilter !== 'ghost') return;
+      // Ghost recruits are shown via the Ghost Dots overlay, not as recruit dots
+      if (isGhost) return;
       const isCommitted = st === 'committed';
       const isHot = r.hot || interest >= 5;
       const isWarm = interest >= 3;
-      const color = isGhost?'#ffffff':isCommitted?'#d0a0ff':isHot?'#ff4060':isWarm?'#f5c842':'#5aabff';
-      const size = isGhost ? 12 : isCommitted||isHot ? 18 : 13;
-      const glow = isGhost ? 'box-shadow:0 0 16px 6px rgba(255,255,255,0.9);' : isCommitted||isHot ? `box-shadow:0 0 12px 4px ${color}55;` : '';
+      const color = isCommitted?'#d0a0ff':isHot?'#ff4060':isWarm?'#f5c842':'#5aabff';
+      const size = isCommitted||isHot ? 18 : 13;
+      const glow = isCommitted||isHot ? `box-shadow:0 0 12px 4px ${color}55;` : '';
 
       // Check for manual location override
       const locOverride = store.locations && store.locations[r.name];
@@ -4121,9 +4147,7 @@ function renderMapRecruits() {
 
       const icon = L.divIcon({
         className: '',
-        html: isGhost
-          ? `<div style="width:${size}px;height:${size}px;background:#ffffff;${glow}cursor:pointer;transform:rotate(45deg);border:2px solid rgba(255,255,255,0.9)"></div>`
-          : `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid #07111f;${glow}cursor:pointer;transition:transform .15s"></div>`,
+        html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid #07111f;${glow}cursor:pointer;transition:transform .15s"></div>`,
         iconSize: [size, size],
         iconAnchor: [size/2, size/2],
       });
@@ -4159,28 +4183,6 @@ function renderMapRecruits() {
     iconSize: [120, 20],
     iconAnchor: [60, 10],
   });
-  // ── Ghost club markers — ghost diamond at club state center ────
-  const _ghostClubsSeen = new Set();
-  all.filter(rc => (store.statuses[rc.name]||'')==='ghost' && (activeFilter==='ghost'||activeFilter==='all')).forEach(rc => {
-    if (activeFilter !== 'ghost') return; // only show ghost club markers in ghost filter
-    const club = getClubName(rc);
-    if (_ghostClubsSeen.has(club)) return;
-    _ghostClubsSeen.add(club);
-    const m2 = (rc.club||'').toUpperCase().match(/\(([A-Z]{2})\)$/);
-    if (!m2) return;
-    const stLatLon = STATE_LATLON[m2[1]];
-    if (!stLatLon) return;
-    const classYear = store.ghostClass&&store.ghostClass[rc.name] ? ' · '+store.ghostClass[rc.name] : '';
-    const ghostClubIcon = L.divIcon({
-      className:'',
-      html:`<div style="width:10px;height:10px;background:#ffffff;box-shadow:0 0 8px 3px rgba(255,255,255,0.7);transform:rotate(45deg);opacity:0.7"></div>`,
-      iconSize:[10,10],iconAnchor:[5,5]
-    });
-    const gm = L.marker(stLatLon,{icon:ghostClubIcon,zIndexOffset:-60}).addTo(leafletMap);
-    gm.bindTooltip(`<div style="color:#fff;font-size:11px">🏐 ${club}${classYear}</div>`,{direction:'top',className:'dark-popup'});
-    mapMarkers.push(gm);
-  });
-
   // ── Club dots (diamond shape, one per unique club with address) ──
   const _clubsSeen = new Set();
   all.forEach(rc => {
