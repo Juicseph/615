@@ -1566,9 +1566,9 @@ function renderList() {
         <div class="r-main" onclick="${bulkMode ? `toggleBulkSelect('${nm}')` : `toggleRecruit('${nm}')`}" style="display:flex;align-items:flex-start;gap:0">
           ${bulkMode ? `<input type="checkbox" class="recruit-checkbox" ${bulkSelected.has(r.name)?'checked':''} onclick="event.stopPropagation();toggleBulkSelect('${nm}')">` : ''}
           <div style="flex:1;min-width:0">
-            <div class="r-name">${r.name}${commitBadge}${timeBadge}${dateBadge}${tzBadge}${callerBadge}${textBadge}${dobAge}${store.campNotes&&store.campNotes[r.name]?`<span style="display:inline-block;padding:1px 6px;background:rgba(255,208,80,.15);border:1px solid rgba(255,208,80,.4);border-radius:3px;color:#ffd080;font-size:9px;font-weight:700;margin-left:3px">⛺ ${store.campNotes[r.name]}</span>`:''} ${stBadge}</div>
+            <div class="r-name">${r.name}${commitBadge}${timeBadge}${dateBadge}${tzBadge}${callerBadge}${textBadge}${store.campNotes&&store.campNotes[r.name]?`<span style="display:inline-block;padding:1px 6px;background:rgba(255,208,80,.15);border:1px solid rgba(255,208,80,.4);border-radius:3px;color:#ffd080;font-size:9px;font-weight:700;margin-left:3px">⛺ ${store.campNotes[r.name]}</span>`:''} ${stBadge}</div>
             <div class="r-meta"><span class="badge b-pos">${pos2}</span>${hb}${ib}${gb2}</div>
-            <div class="r-club">${r.club||''}</div>
+            <div class="r-club">${r.club||''} ${dobAge}</div>
           </div>
         </div>
       </div>`;    });
