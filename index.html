@@ -151,13 +151,13 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .tab-btn:hover:not(.active){color:var(--text-secondary);background:var(--recruit-hover)}
 
 /* ── LAYOUT ── */
-.main{display:grid;grid-template-columns:260px 1fr;flex:1;min-height:0;overflow:hidden;background:var(--bg-base)}
+.main{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--bg-base)}
 .main.rp-fullwidth{grid-template-columns:1fr}
 .main.rp-fullwidth .sidebar{display:none}
 .sidebar{background:var(--sidebar-bg);border-right:1px solid var(--border-primary);display:flex;flex-direction:column;overflow:hidden;min-height:0;position:relative;z-index:10}
-.content-area{overflow:hidden;display:flex;flex-direction:column;height:100%;min-height:0}
+.content-area{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0}
 /* tabRoster: column by default (welcome screen), row when recruit open */
-#tabRoster{display:flex;flex-direction:column}
+#tabRoster{display:flex;flex-direction:column;flex:1;min-height:0}
 #tabRoster.recruit-open{flex-direction:row}
 #tabRoster .welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
 #tabRoster.recruit-open .welcome{display:none}
@@ -692,6 +692,19 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 }
 #panelResizer:hover, #panelResizer.dragging{background:var(--accent)}
 #tabRoster.recruit-open #panelResizer{display:block}
+
+#welcomeRoster{display:flex;flex-direction:column;gap:16px}
+.wr-pos-group{display:flex;flex-direction:column;gap:0}
+.wr-pos-label{font-family:"Oswald",sans-serif;font-size:10px;font-weight:700;color:#b8001e;letter-spacing:2px;text-transform:uppercase;padding:0 0 6px;border-bottom:1px solid #0f1e38;margin-bottom:6px}
+.wr-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px}
+.wr-card{background:#060e1c;border:1px solid #0f1e38;border-left:3px solid #1a3050;border-radius:4px;padding:8px 10px;cursor:pointer;transition:all .15s;position:relative}
+.wr-card:hover{background:#0d1e38;border-color:#2a4a7c}
+.wr-card.active{border-left-color:#b8001e;background:#0d1e38}
+.wr-card.has-guide{border-left-color:#2a7a4a}
+.wr-card-name{font-size:12px;font-weight:700;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.wr-card-meta{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.wr-card-club{font-size:9px;color:#6a8ab0;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wr-card-badges{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -764,95 +777,38 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 </div>
 
 <div class="main">
-  <!-- SIDEBAR (shared across both tabs) -->
-  <div class="sidebar">
-    <div class="search-box">
-      <input type="text" id="searchInput" placeholder="&#128269;  Search by name or club..." oninput="renderList()">
-      <button class="add-btn" onclick="openAddRecruit()">&#43; Add New Recruit</button>
-      <button class="bulk-mode-btn" id="bulkModeBtn" onclick="toggleBulkMode()">&#9745; Bulk Assign Caller</button>
-    </div>
-    <div class="filter-section" style="border-bottom:none">
-      <button class="filter-toggle" onclick="toggleFilters('quickFilters',this)" style="padding:6px 13px">
-        <span id="quickFilterLabel">QUICK FILTERS</span>
-        <span class="filter-toggle-arrow" id="quickFiltersArrow">▼</span>
-      </button>
-      <div class="filter-content open" id="quickFilters" style="gap:5px;padding:5px 13px 8px">
-        <button class="filter-btn active" onclick="setFilter('all',this)" id="filterAll">All</button>
-        <button class="filter-btn" onclick="setFilter('hot',this)">🔥 Hot</button>
-        <button class="filter-btn" onclick="setFilter('committed',this)">🎉 Committed</button>
-        <button class="filter-btn" onclick="setFilter('ghost',this)">👻 Ghost</button>
-      </div>
-    </div>
-    <div class="filter-section">
-      <button class="filter-toggle" onclick="toggleFilters('mainFilters',this)">
-        <span>Filters</span><span class="filter-toggle-arrow" id="mainFiltersArrow">&#9660;</span>
-      </button>
-      <div class="filter-content" id="mainFilters">
-        <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
-        <button class="filter-btn" onclick="setFilter('L',this)">L</button>
-        <button class="filter-btn" onclick="setFilter('OH',this)">OH</button>
-        <button class="filter-btn" onclick="setFilter('RS',this)">RS</button>
-        <button class="filter-btn" onclick="setFilter('S',this)">S</button>
-        <button class="filter-btn" onclick="setFilter('MB',this)">MB</button>
-        <button class="filter-btn" onclick="setFilter('hot',this)">&#128293; Hot</button>
-        <button class="filter-btn" onclick="setFilter('5',this)">&#11088; 5/5</button>
-        <button class="filter-btn" onclick="setFilter('guides',this)">&#10022; Guides</button>
-        <button class="filter-btn" onclick="setFilter('interested',this)">&#128994;</button>
-        <button class="filter-btn" onclick="setFilter('followup',this)">&#128309;</button>
-        <button class="filter-btn" onclick="setFilter('scheduled',this)">&#128336; Sched</button>
-        <button class="filter-btn" onclick="setFilter('ghost',this)">&#128123; Ghost</button>
-        <button class="filter-btn" onclick="setFilter('committed',this)">&#127881; Committed</button>
-      </div>
-    </div>
-    <div class="filter-section">
-      <button class="filter-toggle" onclick="toggleFilters('callerFilters',this)">
-        <span>By Caller</span><span class="filter-toggle-arrow" id="callerFiltersArrow">&#9660;</span>
-      </button>
-      <div class="filter-content" id="callerFilters">
-        <button class="filter-btn" onclick="setFilter('all',this)">All</button>
-        <button class="filter-btn" onclick="setFilter('caller_OJ',this)">OJ</button>
-        <button class="filter-btn" onclick="setFilter('caller_Leisa',this)">Leisa</button>
-        <button class="filter-btn" onclick="setFilter('caller_Jerome',this)">Jerome</button>
-        <button class="filter-btn" onclick="setFilter('caller_Kelsey',this)">Kelsey</button>
-        <button class="filter-btn" onclick="setFilter('unassigned',this)">Unassigned</button>
-      </div>
-    </div>
-    <div class="recruit-list" id="recruitList"></div>
-    <div class="sidebar-bottom">
-      <!-- Bulk assign bar -->
-      <div class="bulk-bar" id="bulkBar">
-        <span class="bulk-label">&#9745; <span class="bulk-count" id="bulkCount">0</span> selected &mdash; assign to:</span>
-        <select class="bulk-select" id="bulkCaller">
-          <option value="">— Caller —</option>
-          <option value="OJ">OJ</option>
-          <option value="Leisa">Leisa</option>
-          <option value="Jerome">Jerome</option>
-          <option value="Kelsey">Kelsey</option>
-        </select>
-        <button class="bulk-assign-btn" onclick="applyBulkAssign()">&#10003; Assign</button>
-        <button class="bulk-cancel" onclick="toggleBulkMode()">Cancel</button>
-      </div>
-      <!-- Auto-advance -->
-      <div class="advance-banner" id="advanceBanner" onclick="advanceToNext()">
-        <div class="ab-label">&#9654; Up Next</div>
-        <div class="ab-name" id="abName">—</div>
-        <div class="ab-detail" id="abDetail"></div>
-      </div>
-    </div>
-  </div>
-
   <!-- ROSTER TAB CONTENT -->
   <div class="content-area" id="tabRoster">
-    <div class="welcome" id="welcomeMsg">
-      <div class="countdown-block" id="countdownBlock">
-        <div class="cd-title">JUNE 15 CALLING DAY</div>
-        <div class="cd-timer" id="cdTimer">--:--:--:--</div>
-        <div class="cd-units"><span>DAYS</span><span>HRS</span><span>MIN</span><span>SEC</span></div>
+    <div id="welcomeMsg" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0">
+      <!-- Countdown strip -->
+      <div style="flex-shrink:0;background:rgba(0,0,0,.2);border-bottom:1px solid #0f1e38;padding:18px 28px 16px">
+        <!-- Clock -->
+        <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px">
+          <div class="cd-title" style="font-size:11px;letter-spacing:2px">JUNE 15 CALLING DAY</div>
+          <div class="cd-timer" id="cdTimer" style="font-size:40px;letter-spacing:4px;line-height:1">--:--:--:--</div>
+          <div style="font-size:9px;color:#3a5a7c;letter-spacing:1px">DAYS · HRS · MIN · SEC</div>
+          <div id="cdChecklist" style="display:none"></div>
+        </div>
+        <!-- Search + Add + Filters in one row -->
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px;position:relative">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#3a5a7c;font-size:13px">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search by name or club..." oninput="renderList();renderWelcomeRoster()"
+              style="width:100%;padding:9px 12px 9px 32px;background:#0a1628;border:1px solid #1e3560;border-radius:6px;color:#ffffff;font-size:13px;font-family:'Source Sans 3',sans-serif;box-sizing:border-box">
+          </div>
+          <button onclick="openAddRecruit()" style="padding:9px 18px;background:#0d3a14;border:1px solid #2a7a3a;border-radius:6px;color:#4adf7a;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">+ Add Recruit</button>
+          <button onclick="toggleBulkMode()" id="bulkModeBtn" style="padding:9px 14px;background:#0a1628;border:1px solid #1e3560;border-radius:6px;color:#5a7ab8;font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0">⊠ Bulk Assign</button>
+          <!-- Quick filters inline -->
+          <div style="display:flex;gap:5px;flex-wrap:wrap">
+            <button class="filter-btn active" onclick="setFilter('all',this)" id="filterAll">All</button>
+            <button class="filter-btn" onclick="setFilter('hot',this)">🔥 Hot</button>
+            <button class="filter-btn" onclick="setFilter('committed',this)">🎉 Committed</button>
+            <button class="filter-btn" onclick="setFilter('ghost',this)">👻 Ghost</button>
+          </div>
+        </div>
       </div>
-      <div class="cd-checklist" id="cdChecklist"></div>
-      <div class="cd-ready" id="cdReady" style="display:none">
-        <div class="cd-go">&#128293; IT'S CALLING DAY — LET'S GO</div>
-      </div>
+      <!-- Full roster grid by position -->
+      <div id="welcomeRoster" style="flex:1;overflow-y:auto;padding:16px 20px;min-height:0"></div>
     </div>
     <div id="editPanel"></div>
     <div id="panelResizer" title="Drag to resize"></div>
@@ -1593,6 +1549,60 @@ function setFilter(f, btn) {
 }
 
 // ── Sidebar list ──────────────────────────────────────────────────────────────
+
+function renderWelcomeRoster() {
+  const el = document.getElementById('welcomeRoster');
+  if (!el) return;
+  const recruits = getRecruits().filter(r => (store.statuses[r.name]||'') !== 'ghost');
+  const groups = {};
+  const posOrder = ['L','OH','OH/RS','RS','OPP','MB','S','DS','UTL','Other'];
+  posOrder.forEach(p => groups[p] = []);
+
+  recruits.forEach(r => {
+    const pos = getPos(r);
+    const g = groups[pos] !== undefined ? pos : 'Other';
+    groups[g].push(r);
+  });
+
+  let html = '';
+  posOrder.forEach(pos => {
+    const arr = applyRankOrder(groups[pos] || []);
+    if (!arr.length) return;
+    const label = POS_LABELS[pos] || pos;
+    html += `<div class="wr-pos-group">
+      <div class="wr-pos-label">${label} <span style="opacity:.5;font-size:8px">${arr.length}</span></div>
+      <div class="wr-cards">`;
+    arr.forEach(r => {
+      const nm = q2(r.name);
+      const st = store.statuses[r.name]||'';
+      const sc = STATUS_CONFIG[st]||STATUS_CONFIG[''];
+      const interest = getInterest(r);
+      const caller = store.callers[r.name]||'';
+      const guide = isGuide(r);
+      const ac = activeRecruit === r.name ? ' active' : '';
+      const gc = guide ? ' has-guide' : '';
+      const callerColor = {OJ:'#f5c842',Leisa:'#4adf7a',Jerome:'#5aabff',Kelsey:'#c080ff'}[caller]||'#607090';
+      const interestColor = parseFloat(interest)>=5?'#ff6080':parseFloat(interest)>=4?'#f5c842':parseFloat(interest)>=3?'#90d090':'#607090';
+      const campNote = store.campNotes&&store.campNotes[r.name] ? `<span style="font-size:8px;color:#ffd080">⛺</span>` : '';
+      const hotBadge = r.hot ? '🔥' : '';
+      const stBadge = st && st!=='ghost' ? `<span class="badge ${sc.cls}" style="font-size:8px">${sc.label}</span>` : '';
+      html += `<div class="wr-card${ac}${gc}" onclick="selectRecruit('${nm}')" title="${r.name}">
+        <div class="wr-card-name">${hotBadge}${r.name}${campNote}</div>
+        <div class="wr-card-meta">
+          ${interest ? `<span style="font-size:9px;color:${interestColor};font-weight:700">★${interest}</span>` : ''}
+          ${caller ? `<span style="font-size:9px;color:${callerColor};font-weight:600">· ${caller}</span>` : ''}
+          ${guide ? '<span style="font-size:9px;color:#4adf7a">✦</span>' : ''}
+          ${stBadge}
+        </div>
+        <div class="wr-card-club">${r.club||''}</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  el.innerHTML = html || '<div style="padding:40px;color:#1e3050;text-align:center">No recruits yet</div>';
+}
+
 function renderList() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   const groups = {};
@@ -1707,10 +1717,12 @@ function renderList() {
     });
   }
 
-  document.getElementById('recruitList').innerHTML = html ||
-    '<div style="padding:20px;color:#1e3050;text-align:center;font-size:13px">No recruits match</div>';
+  if (!activeRecruit) renderWelcomeRoster();
+  const _rl = document.getElementById('recruitList');
+  if (_rl) _rl.innerHTML = html || '<div style="padding:20px;color:#1e3050;text-align:center;font-size:13px">No recruits match</div>';
   updateCounts();
   initDragRank();
+  renderWelcomeRoster();
 }
 
 // ── Select recruit → show PDF ─────────────────────────────────────────────────
@@ -2698,7 +2710,7 @@ function deleteRecruit(name) {
   saveStore();
   if (activeRecruit === name) {
     activeRecruit = null;
-    if(activeTab==='roster'){const _wm=document.getElementById('welcomeMsg');if(_wm){_wm.style.display='flex';_wm.classList.remove('hidden');}}
+    if(activeTab==='roster'){const _wm=document.getElementById('welcomeMsg');if(_wm){_wm.style.display='flex';_wm.classList.remove('hidden');renderWelcomeRoster();}}
     document.getElementById('guideContainer').style.display = 'none';
     const wt = document.getElementById('whisperToggle');
     if (wt) wt.style.display = 'none';
