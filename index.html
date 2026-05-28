@@ -2186,6 +2186,11 @@ function selectRecruit(name) {
 let scheduleCoachFilter = 'all';
 let textCoachFilter = 'all';
 
+function openInRoster(name) {
+  const rBtn = document.querySelector('.tab-btn');
+  switchTab('roster', rBtn);
+  setTimeout(() => selectRecruit(name), 80);
+}
 function filterByCaller(coach) {
   // Switch to roster tab and filter by this caller
   const rosterBtn = document.querySelector('.tab-btn');
@@ -4706,7 +4711,7 @@ function renderDepth() {
         const caller = store.callers[r.name]||'';
         const interestColor = interest>=5?'#4adf7a':interest>=4?'#f5c842':interest>=3?'#5aabff':'#3a5a7c';
         const nm = q2(r.name);
-        html += `<div class="depth-slot ${cls}" onclick="selectRecruit('${nm}')" style="cursor:pointer" title="${r.name}">
+        html += `<div class="depth-slot ${cls}" onclick="openInRoster('${nm}')" style="cursor:pointer" title="${r.name}">
           ${badge}
           <div class="depth-name">${r.name.split(' ')[0]} ${(r.name.split(' ')[1]||'')[0]||''}.</div>
           <div class="depth-detail" style="color:${interestColor}">⭐ ${r.interest||'?'}${caller?' · <span style="color:#ffcc60">'+caller+'</span>':''}</div>
