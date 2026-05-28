@@ -5,7 +5,39 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fresno State VB — Recruit Call Guides</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js">
+// ── Panel Resizer ─────────────────────────────────────────────────
+(function() {
+  let isResizing = false, startX = 0, startW = 0;
+  document.addEventListener('DOMContentLoaded', () => {
+    const resizer = document.getElementById('panelResizer');
+    const ep = document.getElementById('editPanel');
+    if (!resizer || !ep) return;
+    resizer.addEventListener('mousedown', e => {
+      isResizing = true;
+      startX = e.clientX;
+      startW = ep.getBoundingClientRect().width;
+      resizer.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', e => {
+      if (!isResizing) return;
+      const newW = Math.max(280, Math.min(640, startW + e.clientX - startX));
+      ep.style.flex = '0 0 ' + newW + 'px';
+    });
+    document.addEventListener('mouseup', () => {
+      if (!isResizing) return;
+      isResizing = false;
+      resizer.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    });
+  });
+})();
+
+</script>
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap");
 *{box-sizing:border-box;margin:0;padding:0}
@@ -563,7 +595,11 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 /* ── SCHEDULE VIEW ── */
 .schedule-view{flex:1;overflow-y:auto;padding:20px 24px}
 .schedule-view h2{font-family:"Oswald",sans-serif;font-size:20px;color:#fff;margin-bottom:4px}
-.schedule-view .sch-sub{font-size:12px;color:#3a5a80;margin-bottom:20px}
+.schedule-view .sch-sub{font-size:12px;color:#3a5a80;margin-bottom:10px}
+.coach-filter-bar{display:flex;gap:0;border-bottom:1px solid #192e50;margin-bottom:14px;overflow-x:auto}
+.sched-coach-btn{padding:8px 18px;background:none;border:none;border-bottom:2px solid transparent;color:#3a5a7c;font-size:12px;font-weight:600;cursor:pointer;font-family:"Source Sans 3",sans-serif;transition:all .15s;white-space:nowrap;margin-bottom:-1px;flex-shrink:0}
+.sched-coach-btn:hover{color:#c0d8f0}
+.sched-coach-btn.active{color:#ffffff;border-bottom-color:#b8001e}
 .sch-empty{text-align:center;padding:60px 20px;color:#1e3050}
 .sch-empty h3{font-family:"Oswald",sans-serif;font-size:20px;margin-bottom:8px;color:#243a60}
 .sch-empty p{font-size:13px;line-height:1.7}
@@ -634,6 +670,13 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 .drag-handle{cursor:grab;color:var(--text-muted);font-size:12px;padding:0 6px;user-select:none;flex-shrink:0;opacity:0;transition:opacity .15s}
 .recruit-item:hover .drag-handle{opacity:1}
 .drag-handle:active{cursor:grabbing}
+
+#panelResizer{
+  width:5px;flex-shrink:0;background:var(--border-primary);cursor:col-resize;
+  transition:background .15s;position:relative;z-index:10;display:none
+}
+#panelResizer:hover, #panelResizer.dragging{background:var(--accent)}
+#tabRoster.recruit-open #panelResizer{display:block}
 </style>
 </head>
 <body>
@@ -791,6 +834,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
       </div>
     </div>
     <div id="editPanel"></div>
+    <div id="panelResizer" title="Drag to resize"></div>
     <div id="guideContainer"></div>
   </div>
 
@@ -1395,8 +1439,9 @@ function switchTab(tab, btn) {
 // ── Text Schedule View ────────────────────────────────────────────────────────
 function renderTextSchedule() {
   const all = getRecruits();
-  const withText = all.filter(r => store.textDates&&store.textDates[r.name] && store.textTimes&&store.textTimes[r.name]);
-  const noText   = all.filter(r => !(store.textDates&&store.textDates[r.name] && store.textTimes&&store.textTimes[r.name]));
+  const textFilterFn = r => textCoachFilter === 'all' || store.callers[r.name] === textCoachFilter;
+  const withText = all.filter(r => store.textDates&&store.textDates[r.name] && store.textTimes&&store.textTimes[r.name] && textFilterFn(r));
+  const noText   = all.filter(r => !(store.textDates&&store.textDates[r.name] && store.textTimes&&store.textTimes[r.name]) && textFilterFn(r));
 
   function parseTime(t) {
     if (!t) return 9999;
@@ -1422,7 +1467,11 @@ function renderTextSchedule() {
   const totalUnsent = withText.length - totalSent;
 
   let html = `<h2>&#128172; Text Schedule</h2>
-  <div class="ts-sub">${withText.length} text${withText.length!==1?'s':''} scheduled &nbsp;&middot;&nbsp; ${noText.length} not scheduled</div>`;
+  <div class="coach-filter-bar">
+    <button class="text-coach-btn sched-coach-btn${textCoachFilter==='all'?' active':''}" onclick="setTextCoach('all',this)">All</button>
+    ${['OJ','Leisa','Jerome','Kelsey'].map(co=>`<button class="text-coach-btn sched-coach-btn${textCoachFilter===co?' active':''}" onclick="setTextCoach('${co}',this)">${co}</button>`).join('')}
+  </div>
+  <div class="ts-sub">${withText.length} text${withText.length!==1?'s':''} scheduled &nbsp;&middot;&nbsp; ${noText.length} not scheduled${textCoachFilter!=='all'?' · '+textCoachFilter+' only':''}</div>`;
 
   if (withText.length > 0) {
     html += `<div class="ts-summary">
@@ -2114,11 +2163,20 @@ function selectRecruit(name) {
 
 // ── Schedule view ─────────────────────────────────────────────────────────────
 let scheduleCoachFilter = 'all';
+let textCoachFilter = 'all';
+
 function setScheduleCoach(coach, btn) {
   scheduleCoachFilter = coach;
   document.querySelectorAll('.sched-coach-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderSchedule();
+}
+
+function setTextCoach(coach, btn) {
+  textCoachFilter = coach;
+  document.querySelectorAll('.text-coach-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTextSchedule();
 }
 
 function renderSchedule() {
@@ -2152,9 +2210,9 @@ function renderSchedule() {
   const hotSched = scheduled.filter(r => r.hot).length;
 
   let html = `<h2>&#128197; Call Schedule</h2>
-  <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
-    <button class="sched-coach-btn${scheduleCoachFilter==='all'?' active':''}" onclick="setScheduleCoach('all',this)">All Coaches</button>
-    ${['OJ','Leisa','Jerome','Kelsey'].map(c=>`<button class="sched-coach-btn${scheduleCoachFilter===c?' active':''}" onclick="setScheduleCoach('${c}',this)">${c}</button>`).join('')}
+  <div class="coach-filter-bar">
+    <button class="sched-coach-btn${scheduleCoachFilter==='all'?' active':''}" onclick="setScheduleCoach('all',this)">All</button>
+    ${['OJ','Leisa','Jerome','Kelsey'].map(co=>`<button class="sched-coach-btn${scheduleCoachFilter===co?' active':''}" onclick="setScheduleCoach('${co}',this)">${co}</button>`).join('')}
   </div>
   <div class="sch-sub">${totalSched} call${totalSched!==1?'s':''} scheduled &nbsp;&middot;&nbsp; ${unscheduled.length} unscheduled${scheduleCoachFilter!=='all'?' · '+scheduleCoachFilter+' only':''}</div>`;
 
