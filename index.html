@@ -1777,12 +1777,20 @@ function buildEditPanel(name) {
 
     <!-- LINKS -->
     <div class="ep-section">
-      <div class="ep-section-title">🎥 Links</div>
+      <div class="ep-section-title">🎥 Links & Guide</div>
       <div class="ep-field">
         <div class="ep-label">Highlight Reel URL</div>
         <input class="ep-input" type="text" placeholder="https://hudl.com/..." value="${hudl}" onblur="setHudl('${nm}',this.value)">
       </div>
       ${hudl ? `<a href="${hudl}" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:rgba(90,171,255,.06);border:1px solid rgba(90,171,255,.15);border-radius:5px;color:#5aabff;text-decoration:none;font-size:11px;font-weight:600;margin-top:4px">🎥 Open Highlight Reel</a>` : ''}
+      <div class="ep-field" style="margin-top:10px">
+        <div class="ep-label">Call Guide PDF</div>
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:${store.customPDFs[r.name]?'rgba(74,223,122,.06)':'var(--bg-card)'};border:1px ${store.customPDFs[r.name]?'solid rgba(74,223,122,.25)':'dashed rgba(90,171,255,.3)'};border-radius:5px;cursor:pointer;font-size:11px;color:${store.customPDFs[r.name]?'#4adf7a':'#5aabff'};font-weight:600">
+          <input type="file" accept=".pdf" style="display:none" onchange="uploadPDF('${nm}',this);buildEditPanel('${nm}')">
+          ${store.customPDFs[r.name] ? '✓ Guide Uploaded — click to replace' : '↑ Upload Call Guide PDF'}
+        </label>
+        ${store.customPDFs[r.name] ? `<button onclick="store.customPDFs['${nm}']=null;delete store.customPDFs['${nm}'];saveStore();buildEditPanel('${nm}')" style="margin-top:4px;width:100%;padding:5px;background:none;border:1px solid rgba(255,112,136,.3);border-radius:4px;color:#ff7088;font-size:10px;cursor:pointer;font-family:inherit">✕ Remove PDF</button>` : ''}
+      </div>
     </div>
 
     <!-- DANGER -->
