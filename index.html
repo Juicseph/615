@@ -53,50 +53,6 @@
 })();
 
 
-let _fsLevel = parseInt(localStorage.getItem('fsLevel')||'0');
-
-function applyFontSize() {
-  const scale = 1 + (_fsLevel * 0.1);
-  const pct = Math.round(scale * 100);
-  const lbl = document.getElementById('fsLabel');
-  if (lbl) lbl.textContent = pct + '%';
-  // Scale welcome roster cards
-  document.documentElement.style.setProperty('--fs-scale', scale);
-  // Directly update wr-card font sizes
-  const base = 12 * scale;
-  const meta = 9 * scale;
-  const club = 9 * scale;
-  const posLabel = 10 * scale;
-  const styleEl = document.getElementById('_fsStyle');
-  const el = styleEl || (() => { const s = document.createElement('style'); s.id = '_fsStyle'; document.head.appendChild(s); return s; })();
-  el.textContent = `
-    .wr-card-name { font-size: ${base}px !important; }
-    .wr-card-meta { font-size: ${meta}px !important; }
-    .wr-card-club { font-size: ${club}px !important; }
-    .wr-pos-label { font-size: ${posLabel}px !important; }
-    .wr-card { padding: ${6*scale}px ${8*scale}px !important; }
-    .wr-cards { gap: ${5*scale}px !important; grid-template-columns: repeat(auto-fill, minmax(${170*scale}px, 1fr)) !important; }
-    .ep-section-title { font-size: ${8.5*scale}px !important; }
-    .ep-label { font-size: ${8.5*scale}px !important; }
-    .ep-input, .ep-select, .ep-note-text { font-size: ${11.5*scale}px !important; }
-    .note-entry-body { font-size: ${11*scale}px !important; }
-    .r-name { font-size: ${12*scale}px !important; }
-    .r-club { font-size: ${9*scale}px !important; }
-    .lb-coach { font-size: ${13*scale}px !important; }
-    .lb-stat-n { font-size: ${12*scale}px !important; }
-    .lb-stat-l { font-size: ${8*scale}px !important; }
-  `;
-  localStorage.setItem('fsLevel', _fsLevel);
-}
-
-function adjustFontSize(dir) {
-  _fsLevel = Math.max(-2, Math.min(5, _fsLevel + dir));
-  applyFontSize();
-}
-
-// Apply on load
-document.addEventListener('DOMContentLoaded', applyFontSize);
-
 </script>
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap");
@@ -6108,6 +6064,43 @@ function advanceToNext() {
     selectRecruit(name);
   }
 }
+
+// ── Font Size Controls ────────────────────────────────────────────
+let _fsLevel = 0;
+try { _fsLevel = parseInt(localStorage.getItem('fsLevel')||'0'); } catch(e){}
+
+function applyFontSize() {
+  const scale = 1 + (_fsLevel * 0.1);
+  const pct = Math.round(scale * 100);
+  const lbl = document.getElementById('fsLabel');
+  if (lbl) lbl.textContent = pct + '%';
+  let styleEl = document.getElementById('_fsStyle');
+  if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = '_fsStyle'; document.head.appendChild(styleEl); }
+  styleEl.textContent = [
+    `.wr-card-name{font-size:${14*scale}px!important}`,
+    `.wr-card-meta{font-size:${10*scale}px!important}`,
+    `.wr-card-club{font-size:${10*scale}px!important}`,
+    `.wr-pos-label{font-size:${12*scale}px!important}`,
+    `.wr-card{padding:${10*scale}px ${12*scale}px!important}`,
+    `.wr-cards{gap:${6*scale}px!important;grid-template-columns:repeat(auto-fill,minmax(${170*scale}px,1fr))!important}`,
+    `.ep-label{font-size:${9*scale}px!important}`,
+    `.ep-section-title{font-size:${9*scale}px!important}`,
+    `.ep-input,.ep-select,.ep-note-text{font-size:${12*scale}px!important}`,
+    `.note-entry-body{font-size:${12*scale}px!important}`,
+    `.lb-coach{font-size:${13*scale}px!important}`,
+    `.lb-stat-n{font-size:${13*scale}px!important}`,
+    `.lb-stat-l{font-size:${8.5*scale}px!important}`,
+  ].join('');
+  try { localStorage.setItem('fsLevel', _fsLevel); } catch(e){}
+}
+
+function adjustFontSize(dir) {
+  _fsLevel = Math.max(-2, Math.min(5, _fsLevel + dir));
+  applyFontSize();
+}
+
+// Apply saved font size on load
+applyFontSize();
 </script>
 
 <!-- SYNC MODAL -->
