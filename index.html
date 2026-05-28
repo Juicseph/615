@@ -627,6 +627,9 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 .main.recruit-open .r-club{font-size:9px}
 .main.recruit-open .r-meta .badge{font-size:8px;padding:1px 4px}
 .hidden{display:none!important}
+.drag-over{border-top:2px solid var(--accent)!important;}
+.recruit-item[draggable]{cursor:grab}
+.drag-over{border-top:3px solid var(--accent)!important;}
 </style>
 </head>
 <body>
@@ -1039,11 +1042,12 @@ const STATUS_CONFIG = {
   'followup':     {label:'&#128309; Follow Up',  cls:'sb-followup'},
   'warm':         {label:'&#128993; Warm / Maybe',cls:'sb-warm'},
   'notinterested':{label:'&#128308; Not Interested',cls:'sb-notinterested'},
+  'ghost':        {label:'&#128123; Ghost (Current)',cls:'sb-ghost'},
   'committed':    {label:'&#127881; Committed',  cls:'sb-committed'},
 };
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let store = { statuses:{}, notes:{}, callTimes:{}, callDates:{}, customPDFs:{}, positions:{}, deleted:{}, hudlLinks:{}, callers:{}, whisperNotes:{}, newRecruits:[], textMsgs:{}, textDates:{}, textTimes:{}, textSent:{}, locations:{}, clubLocations:{}, dobs:{}, homeAddresses:{}, clubAddresses:{}, campNotes:{} };
+let store = { statuses:{}, notes:{}, callTimes:{}, callDates:{}, customPDFs:{}, positions:{}, deleted:{}, hudlLinks:{}, callers:{}, whisperNotes:{}, newRecruits:[], textMsgs:{}, textDates:{}, textTimes:{}, textSent:{}, locations:{}, clubLocations:{}, dobs:{}, homeAddresses:{}, clubAddresses:{}, campNotes:{}, qaAnswers:{}, rankOrder:[] };
 let activeFilter = 'all';
 let activeRecruit = null;
 let activeTab = 'roster';
@@ -1562,7 +1566,7 @@ function renderList() {
       const nm = q2(r.name);
       const idKey = esc(r.name);
 
-      html += `<div class="recruit-item${ac}${gb}" id="item_${idKey}">
+      html += `<div class="recruit-item${ac}${gb}" id="item_${idKey}" data-name="${r.name}" draggable="true">
         <div class="r-main" onclick="${bulkMode ? `toggleBulkSelect('${nm}')` : `toggleRecruit('${nm}')`}" style="display:flex;align-items:flex-start;gap:0">
           ${bulkMode ? `<input type="checkbox" class="recruit-checkbox" ${bulkSelected.has(r.name)?'checked':''} onclick="event.stopPropagation();toggleBulkSelect('${nm}')">` : ''}
           <div style="flex:1;min-width:0">
@@ -1775,6 +1779,32 @@ function buildEditPanel(name) {
       </div>
     </div>
 
+    <!-- QUESTIONNAIRE -->
+    <div class="ep-section">
+      <div class="ep-section-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="toggleQA('${idKey}')">
+        <span>📋 Questionnaire</span>
+        <span id="qaToggle_${idKey}" style="font-size:10px;color:var(--text-muted)">▶ Show</span>
+      </div>
+      <div id="qaBody_${idKey}" style="display:none;margin-top:8px">
+        <div class="ep-field">
+          <div class="ep-label">Q1 — Interest &amp; Goals</div>
+          <textarea class="ep-input" rows="3" style="resize:vertical;font-size:11px" placeholder="Paste Q1 answer..." oninput="setQA('${nm}','q1',this.value)">${store.qaAnswers&&store.qaAnswers[r.name]&&store.qaAnswers[r.name].q1||r.q1||''}</textarea>
+        </div>
+        <div class="ep-field">
+          <div class="ep-label">Q2 — Program Factors</div>
+          <textarea class="ep-input" rows="3" style="resize:vertical;font-size:11px" placeholder="Paste Q2 answer..." oninput="setQA('${nm}','q2',this.value)">${store.qaAnswers&&store.qaAnswers[r.name]&&store.qaAnswers[r.name].q2||r.q2||''}</textarea>
+        </div>
+        <div class="ep-field">
+          <div class="ep-label">Q3 — One Word / About Them</div>
+          <textarea class="ep-input" rows="3" style="resize:vertical;font-size:11px" placeholder="Paste Q3 answer..." oninput="setQA('${nm}','q3',this.value)">${store.qaAnswers&&store.qaAnswers[r.name]&&store.qaAnswers[r.name].q3||r.q3||''}</textarea>
+        </div>
+        <div class="ep-field">
+          <div class="ep-label">Additional Notes / Other Answers</div>
+          <textarea class="ep-input" rows="3" style="resize:vertical;font-size:11px" placeholder="Any additional questionnaire info..." oninput="setQA('${nm}','q4',this.value)">${store.qaAnswers&&store.qaAnswers[r.name]&&store.qaAnswers[r.name].q4||''}</textarea>
+        </div>
+      </div>
+    </div>
+
     <!-- LINKS -->
     <div class="ep-section">
       <div class="ep-section-title">🎥 Links & Guide</div>
@@ -1839,12 +1869,115 @@ function addNoteFromPanel(name, idKey) {
   if (logEl) logEl.scrollTop = logEl.scrollHeight;
 }
 
+
+// ── Drag-to-rank ─────────────────────────────────────────────────
+let _dragName = null;
+let _dragOverName = null;
+
+function initDragRank() {
+  const list = document.getElementById('recruitList');
+  if (!list) return;
+  list.addEventListener('dragstart', e => {
+    const item = e.target.closest('.recruit-item');
+    if (!item) return;
+    _dragName = item.dataset.rname;
+    item.style.opacity = '0.5';
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  list.addEventListener('dragend', e => {
+    const item = e.target.closest('.recruit-item');
+    if (item) item.style.opacity = '';
+    document.querySelectorAll('.recruit-item').forEach(el => el.classList.remove('drag-over'));
+    _dragName = null; _dragOverName = null;
+  });
+  list.addEventListener('dragover', e => {
+    e.preventDefault();
+    const item = e.target.closest('.recruit-item');
+    if (!item || item.dataset.rname === _dragName) return;
+    _dragOverName = item.dataset.rname;
+    document.querySelectorAll('.recruit-item').forEach(el => el.classList.remove('drag-over'));
+    item.classList.add('drag-over');
+  });
+  list.addEventListener('drop', e => {
+    e.preventDefault();
+    document.querySelectorAll('.recruit-item').forEach(el => el.classList.remove('drag-over'));
+    if (!_dragName || !_dragOverName || _dragName === _dragOverName) return;
+    const allItems = [...document.querySelectorAll('.recruit-item')].map(el => el.dataset.rname).filter(Boolean);
+    const fromIdx = allItems.indexOf(_dragName);
+    const toIdx   = allItems.indexOf(_dragOverName);
+    if (fromIdx < 0 || toIdx < 0) return;
+    allItems.splice(fromIdx, 1);
+    allItems.splice(toIdx, 0, _dragName);
+    store.rankOrder = allItems;
+    saveStore();
+    renderList();
+  });
+}
+
+function applyRankOrder(recruits) {
+  if (!store.rankOrder || !store.rankOrder.length) return recruits;
+  const nameMap = {};
+  recruits.forEach(r => nameMap[r.name] = r);
+  const ranked = [];
+  const seen = new Set();
+  store.rankOrder.forEach(name => {
+    if (nameMap[name]) { ranked.push(nameMap[name]); seen.add(name); }
+  });
+  recruits.forEach(r => { if (!seen.has(r.name)) ranked.push(r); });
+  return ranked;
+}
+
+// ── Questionnaire store ──────────────────────────────────────────
+function setQA(name, key, val) {
+  if (!store.qaAnswers) store.qaAnswers = {};
+  if (!store.qaAnswers[name]) store.qaAnswers[name] = {};
+  store.qaAnswers[name][key] = val;
+  saveStore();
+}
+
+function toggleQA(idKey) {
+  const body = document.getElementById('qaBody_' + idKey);
+  const toggle = document.getElementById('qaToggle_' + idKey);
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  if (toggle) toggle.textContent = open ? '▶ Show' : '▼ Hide';
+}
+
+function setCaller(name, val) {
+  store.callers[name] = val;
+  saveStore();
+  renderLeaderboard();
+  updateCounts();
+  // Update caller badge in sidebar without full re-render
+  const idKey = esc(name);
+  const card = document.getElementById('item_' + idKey);
+  if (card) {
+    const callerBadge = card.querySelector('.r-caller-badge');
+    if (val) {
+      if (callerBadge) callerBadge.textContent = '📞 ' + val;
+      else {
+        const nameDiv = card.querySelector('.r-name');
+        if (nameDiv) {
+          const span = document.createElement('span');
+          span.className = 'r-caller-badge';
+          span.textContent = '📞 ' + val;
+          nameDiv.appendChild(span);
+        }
+      }
+    } else if (callerBadge) callerBadge.remove();
+  }
+}
+
 function setCallTime(name, val) {
-  if (!val.trim()) return;
-  store.callTimes[name] = val.trim(); saveStore(); buildEditPanel(name);
+  if (!val || !val.trim()) return;
+  store.callTimes[name] = val.trim(); saveStore();
+  // Update sidebar badge in-place
+  const tb = document.getElementById('tbadge_' + esc(name));
+  if (tb) { tb.textContent = '🕐 ' + val.trim(); tb.style.display = ''; }
 }
 function setCallDate(name, val) {
-  store.callDates[name] = val; saveStore(); buildEditPanel(name);
+  store.callDates[name] = val; saveStore();
 }
 
 // ─────────────────────────────────────────────────────────────────
