@@ -1591,7 +1591,7 @@ function renderList() {
           ${bulkMode ? `<input type="checkbox" class="recruit-checkbox" ${bulkSelected.has(r.name)?'checked':''} onclick="event.stopPropagation();toggleBulkSelect('${nm}')">` : ''}
           <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div style="flex:1;min-width:0">
-            <div class="r-name">${r.name}${commitBadge}${timeBadge}${dateBadge}${tzBadge}${callerBadge}${textBadge}${store.campNotes&&store.campNotes[r.name]?`<span style="display:inline-block;padding:1px 6px;background:rgba(255,208,80,.15);border:1px solid rgba(255,208,80,.4);border-radius:3px;color:#ffd080;font-size:9px;font-weight:700;margin-left:3px">⛺ ${store.campNotes[r.name]}</span>`:''} ${stBadge}</div>
+            <div class="r-name">${r.name}${store.ghostClass&&store.ghostClass[r.name]?`<span style="font-size:9px;color:#6080a0;font-weight:700;margin-left:3px">'${store.ghostClass[r.name]}</span>`:''} ${commitBadge}${timeBadge}${dateBadge}${tzBadge}${callerBadge}${textBadge}${store.campNotes&&store.campNotes[r.name]?`<span style="display:inline-block;padding:1px 6px;background:rgba(255,208,80,.15);border:1px solid rgba(255,208,80,.4);border-radius:3px;color:#ffd080;font-size:9px;font-weight:700;margin-left:3px">⛺ ${store.campNotes[r.name]}</span>`:''} ${stBadge}</div>
             <div class="r-meta"><span class="badge b-pos">${pos2}</span>${hb}${ib}${gb2}</div>
             <div class="r-club">${r.club||''} ${dobAge}</div>
           </div>
@@ -1599,9 +1599,34 @@ function renderList() {
       </div>`;    });
   });
 
+  // Ghost section at bottom (when not filtering for ghost)
+  const _ghosts = groups['_ghost'] || [];
+  if (_ghosts.length) {
+    html += `<div class="section-label" style="color:#405070;border-top:1px dashed #1a2535;margin-top:4px">
+      <span>👻 GHOST · CURRENT PLAYERS (${_ghosts.length})</span>
+    </div>`;
+    _ghosts.forEach(r => {
+      const idKey = esc(r.name); const nm = q2(r.name);
+      const st2 = store.statuses[r.name]||''; const sc2 = STATUS_CONFIG[st2]||STATUS_CONFIG[''];
+      const pos2 = getPos(r); const guide = isGuide(r);
+      const ac = activeRecruit===r.name?' active':'';
+      const classYear = store.ghostClass&&store.ghostClass[r.name] ? `<span style="font-size:9px;color:#6080a0;font-weight:700;margin-left:4px">'${store.ghostClass[r.name]}</span>` : '';
+      html += `<div class="recruit-item${ac}" id="item_${idKey}" data-rname="${r.name.replace(/"/g,'&quot;')}" style="opacity:0.6;border-left-color:#1a2535">
+        <div class="r-main" onclick="toggleRecruit('${nm}')">
+          <div style="flex:1;min-width:0">
+            <div class="r-name" style="color:#5a7090">${r.name}${classYear} ${guide?'<span class="badge b-guide">✦</span>':''}</div>
+            <div class="r-meta"><span class="badge b-pos" style="opacity:0.6">${pos2}</span></div>
+            <div class="r-club" style="color:#2a3a50">${r.club||''}</div>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
   document.getElementById('recruitList').innerHTML = html ||
     '<div style="padding:20px;color:#1e3050;text-align:center;font-size:13px">No recruits match</div>';
   updateCounts();
+  initDragRank();
 }
 
 // ── Select recruit → show PDF ─────────────────────────────────────────────────
@@ -4068,7 +4093,7 @@ function renderMapRecruits() {
       const isHot = r.hot || interest >= 5;
       const isWarm = interest >= 3;
       const color = isGhost?'#ffffff':isCommitted?'#d0a0ff':isHot?'#ff4060':isWarm?'#f5c842':'#5aabff';
-      const size = isGhost ? 16 : isCommitted||isHot ? 18 : 13;
+      const size = isGhost ? 12 : isCommitted||isHot ? 18 : 13;
       const glow = isGhost ? 'box-shadow:0 0 16px 6px rgba(255,255,255,0.9);' : isCommitted||isHot ? `box-shadow:0 0 12px 4px ${color}55;` : '';
 
       // Check for manual location override
@@ -4134,6 +4159,28 @@ function renderMapRecruits() {
     iconSize: [120, 20],
     iconAnchor: [60, 10],
   });
+  // ── Ghost club markers — ghost diamond at club state center ────
+  const _ghostClubsSeen = new Set();
+  all.filter(rc => (store.statuses[rc.name]||'')==='ghost' && (activeFilter==='ghost'||activeFilter==='all')).forEach(rc => {
+    if (activeFilter !== 'ghost') return; // only show ghost club markers in ghost filter
+    const club = getClubName(rc);
+    if (_ghostClubsSeen.has(club)) return;
+    _ghostClubsSeen.add(club);
+    const m2 = (rc.club||'').toUpperCase().match(/\(([A-Z]{2})\)$/);
+    if (!m2) return;
+    const stLatLon = STATE_LATLON[m2[1]];
+    if (!stLatLon) return;
+    const classYear = store.ghostClass&&store.ghostClass[rc.name] ? ' · '+store.ghostClass[rc.name] : '';
+    const ghostClubIcon = L.divIcon({
+      className:'',
+      html:`<div style="width:10px;height:10px;background:#ffffff;box-shadow:0 0 8px 3px rgba(255,255,255,0.7);transform:rotate(45deg);opacity:0.7"></div>`,
+      iconSize:[10,10],iconAnchor:[5,5]
+    });
+    const gm = L.marker(stLatLon,{icon:ghostClubIcon,zIndexOffset:-60}).addTo(leafletMap);
+    gm.bindTooltip(`<div style="color:#fff;font-size:11px">🏐 ${club}${classYear}</div>`,{direction:'top',className:'dark-popup'});
+    mapMarkers.push(gm);
+  });
+
   // ── Club dots (diamond shape, one per unique club with address) ──
   const _clubsSeen = new Set();
   all.forEach(rc => {
