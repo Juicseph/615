@@ -630,7 +630,10 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 .drag-over{border-top:2px solid var(--accent)!important;}
 .recruit-item[draggable]{cursor:grab}
 .drag-over{border-top:3px solid var(--accent)!important;}
-.recruit-item.dragging{opacity:0.4;background:var(--bg-panel)}
+.recruit-item.dragging{opacity:0.35;}
+.drag-handle{cursor:grab;color:var(--text-muted);font-size:12px;padding:0 6px;user-select:none;flex-shrink:0;opacity:0;transition:opacity .15s}
+.recruit-item:hover .drag-handle{opacity:1}
+.drag-handle:active{cursor:grabbing}
 </style>
 </head>
 <body>
@@ -1526,7 +1529,8 @@ function renderList() {
       : activeFilter === 'MB' ? pos === 'MB'
       : true;
     if (mQ && mF) {
-      if (st === 'ghost') {
+      if (st === 'ghost' && activeFilter !== 'ghost') {
+        // Ghost recruits sink to bottom section unless ghost filter is active
         if (!groups['_ghost']) groups['_ghost'] = [];
         groups['_ghost'].push(r);
       } else {
@@ -1574,9 +1578,10 @@ function renderList() {
       const nm = q2(r.name);
       const idKey = esc(r.name);
 
-      html += `<div class="recruit-item${ac}${gb}" id="item_${idKey}" data-name="${r.name}" draggable="true">
+      html += `<div class="recruit-item${ac}${gb}" id="item_${idKey}" data-rname="${r.name.replace(/"/g,'&quot;')}" draggable="true">
         <div class="r-main" onclick="${bulkMode ? `toggleBulkSelect('${nm}')` : `toggleRecruit('${nm}')`}" style="display:flex;align-items:flex-start;gap:0">
           ${bulkMode ? `<input type="checkbox" class="recruit-checkbox" ${bulkSelected.has(r.name)?'checked':''} onclick="event.stopPropagation();toggleBulkSelect('${nm}')">` : ''}
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
           <div style="flex:1;min-width:0">
             <div class="r-name">${r.name}${commitBadge}${timeBadge}${dateBadge}${tzBadge}${callerBadge}${textBadge}${store.campNotes&&store.campNotes[r.name]?`<span style="display:inline-block;padding:1px 6px;background:rgba(255,208,80,.15);border:1px solid rgba(255,208,80,.4);border-radius:3px;color:#ffd080;font-size:9px;font-weight:700;margin-left:3px">⛺ ${store.campNotes[r.name]}</span>`:''} ${stBadge}</div>
             <div class="r-meta"><span class="badge b-pos">${pos2}</span>${hb}${ib}${gb2}</div>
@@ -1887,13 +1892,18 @@ let _dragName = null;
 let _dragOverName = null;
 
 function initDragRank() {
-  document.querySelectorAll('.recruit-item[draggable]').forEach(item => {
-    item.addEventListener('dragstart', e => {
-      _dragName = item.dataset.rname;
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', _dragName);
-      setTimeout(() => item.classList.add('dragging'), 0);
-    });
+  document.querySelectorAll('#recruitList .recruit-item').forEach(item => {
+    const handle = item.querySelector('.drag-handle');
+    if (handle) {
+      handle.setAttribute('draggable', 'true');
+      handle.addEventListener('dragstart', e => {
+        _dragName = item.dataset.rname;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', _dragName || '');
+        setTimeout(() => item.classList.add('dragging'), 0);
+      });
+    }
+    item.removeAttribute('draggable');
     item.addEventListener('dragend', () => {
       item.classList.remove('dragging');
       document.querySelectorAll('.recruit-item').forEach(el => el.classList.remove('drag-over'));
@@ -1911,7 +1921,7 @@ function initDragRank() {
       e.stopPropagation();
       document.querySelectorAll('.recruit-item').forEach(el => el.classList.remove('drag-over'));
       if (!_dragName || !_dragOverName || _dragName === _dragOverName) return;
-      const allItems = [...document.querySelectorAll('.recruit-item')].map(el => el.dataset.rname).filter(Boolean);
+      const allItems = [...document.querySelectorAll('#recruitList .recruit-item')].map(el => el.dataset.rname).filter(Boolean);
       const fromIdx = allItems.indexOf(_dragName);
       const toIdx   = allItems.indexOf(_dragOverName);
       if (fromIdx < 0 || toIdx < 0) return;
