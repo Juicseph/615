@@ -237,10 +237,10 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .ctrl-time::placeholder{color:#2a3a50;font-weight:400}
 .ctrl-notes{width:100%;background:#0d1a2e;border:1px solid #1e3560;color:#c0b8b0;padding:5px 8px;border-radius:4px;font-size:11px;font-family:"Source Sans 3",sans-serif;resize:vertical;min-height:80px}
 .notes-log{background:#060e1c;border:1px solid #0f1e38;border-radius:4px;padding:6px 8px;max-height:160px;overflow-y:auto;margin-bottom:5px;min-height:32px}
-.note-entry-item{border-left:2px solid #3a7a5a;padding:4px 8px;margin-bottom:5px}
+.note-entry-item{border-left:2px solid #3a7a5a;padding:5px 8px;margin-bottom:5px;background:rgba(255,255,255,.02);border-radius:0 3px 3px 0}
 .note-entry-item:last-child{margin-bottom:0}
-.note-entry-meta{font-size:9px;margin-bottom:2px}
-.note-entry-body{font-size:10.5px;color:#b0c8d8;line-height:1.5}
+.note-entry-meta{font-size:9.5px;margin-bottom:3px;color:#ffffff;opacity:0.7}
+.note-entry-body{font-size:11.5px;color:#ffffff;line-height:1.6}
 .note-entry-row{display:flex;gap:5px;align-items:flex-start;margin-bottom:4px}
 .note-author-sel{background:#0d1a2e;border:1px solid #1e3560;color:#ffcc60;padding:4px 6px;border-radius:4px;font-size:10px;font-family:"Source Sans 3",sans-serif;flex-shrink:0;height:fit-content;margin-top:1px}
 .note-entry-text{flex:1;min-height:40px;resize:none}
@@ -280,14 +280,14 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .pdf-viewer iframe{width:100%;height:100%;border:none;display:block}
 
 /* ── WHISPER MODE (floating notes) ── */
-.whisper{position:fixed;bottom:24px;right:24px;width:300px;background:#0a1828;border:1px solid #2a4a7c;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.7);z-index:9999;display:none;flex-direction:column;overflow:hidden}
+.whisper{position:fixed;bottom:24px;right:24px;width:360px;background:#0a1828;border:1px solid #2a4a7c;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.7);z-index:9999;display:none;flex-direction:column;overflow:hidden}
 .whisper.open{display:flex}
 .whisper-hdr{background:#0f2040;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;cursor:move;user-select:none;border-bottom:1px solid #1e3a5c}
 .whisper-hdr-title{font-family:"Oswald",sans-serif;font-size:13px;color:#ffffff;letter-spacing:.8px}
 .whisper-close{background:none;border:none;color:#ffffff;cursor:pointer;font-size:16px;padding:0;line-height:1;opacity:0.7}
 .whisper-close:hover{color:#e0d8cc}
 .whisper-body{padding:10px}
-.whisper-ta{width:100%;height:160px;background:#060e1c;border:1px solid #1a2e48;border-radius:4px;color:#ffffff;font-size:12px;font-family:"Source Sans 3",sans-serif;padding:8px;resize:none;line-height:1.5}
+.whisper-ta{width:100%;height:180px;background:#060e1c;border:1px solid #2a4a6c;border-radius:4px;color:#ffffff;font-size:13px;font-family:"Source Sans 3",sans-serif;padding:10px;resize:vertical;line-height:1.5}
 .whisper-ta:focus{outline:none;border-color:#3a6a9c}
 .whisper-ta::placeholder{color:#1e3050}
 .whisper-save{padding:6px;background:#0f2a48;border:1px solid #1e4a7c;border-radius:4px;color:#ffffff;font-size:11px;font-weight:600;cursor:pointer;font-family:"Source Sans 3",sans-serif;transition:all .15s}
@@ -962,6 +962,16 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
     <button class="whisper-close" onclick="toggleWhisper()">&#215;</button>
   </div>
   <div class="whisper-body">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="font-size:10px;color:#ffffff;opacity:0.6;white-space:nowrap">Coach:</span>
+      <select id="whisperCoach" style="flex:1;background:#0a1628;border:1px solid #2a4a6c;color:#ffffff;padding:4px 8px;border-radius:4px;font-size:11px;font-family:'Source Sans 3',sans-serif">
+        <option value="OJ">OJ</option>
+        <option value="Leisa">Leisa</option>
+        <option value="Jerome">Jerome</option>
+        <option value="Kelsey">Kelsey</option>
+        <option value="Coach">Coach (General)</option>
+      </select>
+    </div>
     <textarea class="whisper-ta" id="whisperTa" placeholder="Type freely while on the call — saves automatically..."></textarea>
     <div style="display:flex;gap:6px;margin-top:6px">
       <button class="whisper-save" style="flex:1" onclick="saveWhisper()">&#10003; Save to notes</button>
@@ -2360,24 +2370,25 @@ function renderNoteLog(name, idKey) {
         <div class="note-entry-meta" style="display:flex;align-items:center;justify-content:space-between">
           <span><span style="color:${authorColor};font-weight:700">${author||'Coach'}</span><span style="color:#2a4a5c;margin-left:6px;font-size:9px">${ts}</span></span>
           <span style="display:flex;gap:4px">
-            <button onclick="editNote('${nm2}',${i},'${esc(name)}')" style="background:none;border:none;color:#2a4a6c;cursor:pointer;font-size:9px;padding:0 2px">✏</button>
-            <button onclick="deleteNote('${nm2}',${i},'${esc(name)}')" style="background:none;border:none;color:#5a1a2a;cursor:pointer;font-size:9px;padding:0 2px">✕</button>
+            <button onclick="editNote('${nm2}',${i},'${esc(name)}')" style="background:rgba(90,171,255,.1);border:1px solid rgba(90,171,255,.2);border-radius:3px;color:#90c8ff;cursor:pointer;font-size:11px;padding:1px 5px;margin-left:2px" title="Edit">✏</button>
+            <button onclick="deleteNote('${nm2}',${i},'${esc(name)}')" style="background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.2);border-radius:3px;color:#ff8080;cursor:pointer;font-size:11px;padding:1px 5px;margin-left:2px" title="Delete">✕</button>
           </span>
         </div>
         <div class="note-entry-body" id="notebody_${esc(name)}_${i}">${text}</div>
       </div>`;
     }
     if (line.match(/^\[.*PST\]/)) {
-      return `<div class="note-entry-item" style="border-left-color:#2a4a6c" id="noteline_${esc(name)}_${i}">
+      const isWhisper = line.includes(': 📝');
+      return `<div class="note-entry-item" style="border-left-color:${isWhisper?'#2a6a8a':'#2a4a6c'}" id="noteline_${esc(name)}_${i}">
         <div class="note-entry-meta" style="display:flex;justify-content:flex-end">
-          <button onclick="deleteNote('${nm2}',${i},'${esc(name)}')" style="background:none;border:none;color:#5a1a2a;cursor:pointer;font-size:9px;padding:0 2px">✕</button>
+          <button onclick="deleteNote('${nm2}',${i},'${esc(name)}')" style="background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.2);border-radius:3px;color:#ff8080;cursor:pointer;font-size:11px;padding:1px 5px;margin-left:2px" title="Delete">✕</button>
         </div>
-        <div class="note-entry-body" style="color:#5a8ab0">${line}</div>
+        <div class="note-entry-body" style="color:${isWhisper?'#90d8f8':'#5a8ab0'}">${line}</div>
       </div>`;
     }
     return `<div class="note-entry-item" style="border-left-color:#1a3050" id="noteline_${esc(name)}_${i}">
       <div class="note-entry-meta" style="display:flex;justify-content:flex-end">
-        <button onclick="deleteNote('${nm2}',${i},'${esc(name)}')" style="background:none;border:none;color:#5a1a2a;cursor:pointer;font-size:9px;padding:0 2px">✕</button>
+        <button onclick="deleteNote('${nm2}',${i},'${esc(name)}')" style="background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.2);border-radius:3px;color:#ff8080;cursor:pointer;font-size:11px;padding:1px 5px;margin-left:2px" title="Delete">✕</button>
       </div>
       <div class="note-entry-body" style="color:#4a6a80">${line}</div>
     </div>`;
@@ -2897,6 +2908,12 @@ function getTZLine(r, callTime) {
 let whisperOpen = false;
 
 function toggleWhisper() {
+  // Sync coach dropdown to recruit's caller when opening
+  const sel = document.getElementById('whisperCoach');
+  if (sel && activeRecruit) {
+    const caller = store.callers[activeRecruit];
+    if (caller) sel.value = caller;
+  }
   const panel = document.getElementById('whisperPanel');
   const toggle = document.getElementById('whisperToggle');
   whisperOpen = !whisperOpen;
@@ -2917,16 +2934,20 @@ function deleteWhisper() {
 function saveWhisper() {
   if (!activeRecruit) return;
   const text = document.getElementById('whisperTa').value.trim();
+  if (!text) return;
   if (!store.whisperNotes) store.whisperNotes = {};
   store.whisperNotes[activeRecruit] = text;
-  // Merge into main notes with a separator
-  if (text) {
-    const existing = store.notes[activeRecruit] || '';
-    const marker = '[Whisper notes] ' + text;
-    if (!existing.includes(marker)) {
-      store.notes[activeRecruit] = existing ? existing + '\n' + marker : marker;
-    }
-  }
+  // Add to main notes with timestamp + author (same format as other notes)
+  const whisperCoachEl = document.getElementById('whisperCoach');
+  const caller = (whisperCoachEl && whisperCoachEl.value) || store.callers[activeRecruit] || 'Coach';
+  const now = new Date();
+  const ts = now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}) + ' PST ' +
+             now.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const lines = text.split('\n').filter(l => l.trim());
+  if (!store.notes) store.notes = {};
+  const existing = store.notes[activeRecruit] || '';
+  const newEntries = lines.map(line => `[${ts}] ${caller}: 📝 ${line.trim()}`).join('\n');
+  store.notes[activeRecruit] = existing ? existing + '\n' + newEntries : newEntries;
   saveStore();
   // Flash the button
   const btn = document.querySelector('.whisper-save');
