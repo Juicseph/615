@@ -283,14 +283,14 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .whisper{position:fixed;bottom:24px;right:24px;width:300px;background:#0a1828;border:1px solid #2a4a7c;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.7);z-index:9999;display:none;flex-direction:column;overflow:hidden}
 .whisper.open{display:flex}
 .whisper-hdr{background:#0f2040;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;cursor:move;user-select:none;border-bottom:1px solid #1e3a5c}
-.whisper-hdr-title{font-family:"Oswald",sans-serif;font-size:13px;color:#7ab8d8;letter-spacing:.8px}
-.whisper-close{background:none;border:none;color:#3a5a7c;cursor:pointer;font-size:16px;padding:0;line-height:1}
+.whisper-hdr-title{font-family:"Oswald",sans-serif;font-size:13px;color:#ffffff;letter-spacing:.8px}
+.whisper-close{background:none;border:none;color:#ffffff;cursor:pointer;font-size:16px;padding:0;line-height:1;opacity:0.7}
 .whisper-close:hover{color:#e0d8cc}
 .whisper-body{padding:10px}
-.whisper-ta{width:100%;height:160px;background:#060e1c;border:1px solid #1a2e48;border-radius:4px;color:#c8d8e8;font-size:12px;font-family:"Source Sans 3",sans-serif;padding:8px;resize:none;line-height:1.5}
+.whisper-ta{width:100%;height:160px;background:#060e1c;border:1px solid #1a2e48;border-radius:4px;color:#ffffff;font-size:12px;font-family:"Source Sans 3",sans-serif;padding:8px;resize:none;line-height:1.5}
 .whisper-ta:focus{outline:none;border-color:#3a6a9c}
 .whisper-ta::placeholder{color:#1e3050}
-.whisper-save{margin-top:6px;width:100%;padding:6px;background:#0f2a48;border:1px solid #1e4a7c;border-radius:4px;color:#5a9acc;font-size:11px;font-weight:600;cursor:pointer;font-family:"Source Sans 3",sans-serif;transition:all .15s}
+.whisper-save{padding:6px;background:#0f2a48;border:1px solid #1e4a7c;border-radius:4px;color:#ffffff;font-size:11px;font-weight:600;cursor:pointer;font-family:"Source Sans 3",sans-serif;transition:all .15s}
 .whisper-save:hover{background:#162e50;color:#90c8f0}
 .whisper-toggle{position:fixed;bottom:24px;right:24px;background:#0f2040;border:1px solid #2a4a7c;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:9998;font-size:18px;box-shadow:0 4px 20px rgba(0,0,0,.6);transition:all .2s}
 .whisper-toggle:hover{background:#162e50;transform:scale(1.08)}
@@ -963,7 +963,10 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
   </div>
   <div class="whisper-body">
     <textarea class="whisper-ta" id="whisperTa" placeholder="Type freely while on the call — saves automatically..."></textarea>
-    <button class="whisper-save" onclick="saveWhisper()">&#10003; Save to recruit notes</button>
+    <div style="display:flex;gap:6px;margin-top:6px">
+      <button class="whisper-save" style="flex:1" onclick="saveWhisper()">&#10003; Save to notes</button>
+      <button class="whisper-save" style="flex:0 0 auto;background:#200a10;border-color:#5a1a2a;color:#ff7088" onclick="deleteWhisper()">&#128465; Clear</button>
+    </div>
   </div>
 </div>
 
@@ -2900,6 +2903,15 @@ function toggleWhisper() {
   panel.classList.toggle('open', whisperOpen);
   // Offset toggle button when panel is open
   toggle.style.bottom = whisperOpen ? '260px' : '24px';
+}
+
+function deleteWhisper() {
+  if (!activeRecruit) return;
+  if (!confirm('Clear whisper note for ' + activeRecruit + '?')) return;
+  const ta = document.getElementById('whisperTa');
+  if (ta) ta.value = '';
+  if (store.whisperNotes) delete store.whisperNotes[activeRecruit];
+  saveStore();
 }
 
 function saveWhisper() {
