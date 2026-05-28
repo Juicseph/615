@@ -707,6 +707,30 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 .wr-card-meta{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .wr-card-club{font-size:9px;color:#6a8ab0;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wr-card-badges{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap}
+
+/* ── Calendar View ── */
+.sched-view-toggle{display:flex;gap:6px;margin-bottom:12px}
+.sched-view-btn{padding:5px 14px;background:#0a1628;border:1px solid #1e3050;border-radius:4px;color:#ffffff;font-size:11px;font-weight:600;cursor:pointer;opacity:.6}
+.sched-view-btn.active{opacity:1;border-color:#b8001e;background:#172848}
+.cal-nav{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.cal-nav-btn{background:#0a1628;border:1px solid #1e3050;color:#ffffff;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:14px;font-weight:700}
+.cal-nav-btn:hover{border-color:#b8001e}
+.cal-month-label{font-family:"Oswald",sans-serif;font-size:18px;font-weight:700;color:#ffffff;letter-spacing:1px;flex:1}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-dow{text-align:center;font-size:10px;font-weight:700;color:#3a5a7c;padding:6px 0;letter-spacing:1px;text-transform:uppercase}
+.cal-day{min-height:90px;background:#060e1c;border:1px solid #0f1e38;border-radius:4px;padding:5px;position:relative;vertical-align:top}
+.cal-day.today{border-color:#b8001e;background:#0d1020}
+.cal-day.other-month{opacity:.35}
+.cal-day-num{font-size:11px;font-weight:700;color:#3a5a7c;margin-bottom:4px}
+.cal-day.today .cal-day-num{color:#ff4060;font-size:12px}
+.cal-recruit-chip{font-size:10px;padding:2px 6px;border-radius:3px;margin-bottom:2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:3px solid #b8001e;background:#0f1e38;color:#ffffff;transition:background .1s;display:flex;align-items:center;gap:3px}
+.cal-recruit-chip:hover{background:#1a2e50}
+.cal-recruit-chip.dragging{opacity:.4}
+.cal-day.drag-over{background:#0d2040;border-color:#5aabff}
+.cal-drop-zone{position:absolute;inset:0;border-radius:4px;z-index:5;display:none}
+.cal-day.drag-over .cal-drop-zone{display:block}
+.ics-btn{font-size:9px;padding:1px 5px;background:rgba(90,171,255,.1);border:1px solid rgba(90,171,255,.2);border-radius:3px;color:#5aabff;cursor:pointer;white-space:nowrap;flex-shrink:0}
+
 </style>
 </head>
 <body>
@@ -2283,7 +2307,177 @@ function setTextCoach(coach, btn) {
   renderTextSchedule();
 }
 
+let schedView = 'calendar';
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let _dragRecruit = null;
+
 function renderSchedule() {
+  if (schedView === 'calendar') renderCalendar();
+  else renderScheduleList();
+}
+
+function renderCalendar() {
+  const view = document.getElementById('scheduleView');
+  if (!view) return;
+  const all = getRecruits();
+  const filterFn = r => scheduleCoachFilter === 'all' || store.callers[r.name] === scheduleCoachFilter;
+  const scheduled = all.filter(r => store.callDates[r.name] && filterFn(r));
+
+  const now = new Date();
+  const monthLabel = new Date(calYear, calMonth, 1).toLocaleDateString('en-US',{month:'long',year:'numeric'}).toUpperCase();
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const daysInPrev = new Date(calYear, calMonth, 0).getDate();
+
+  // Build date→recruits map
+  const byDate = {};
+  scheduled.forEach(r => {
+    const d = store.callDates[r.name];
+    if (!byDate[d]) byDate[d] = [];
+    byDate[d].push(r);
+  });
+
+  // Coach filter bar
+  let html = `
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+    <div class="coach-filter-bar" style="border:none;margin:0;flex:1">
+      <button class="sched-coach-btn${scheduleCoachFilter==='all'?' active':''}" onclick="setScheduleCoach('all',this)">All</button>
+      ${['OJ','Leisa','Jerome','Kelsey'].map(co=>`<button class="sched-coach-btn${scheduleCoachFilter===co?' active':''}" onclick="setScheduleCoach('${co}',this)">${co}</button>`).join('')}
+    </div>
+    <div class="sched-view-toggle">
+      <button class="sched-view-btn${schedView==='calendar'?' active':''}" onclick="schedView='calendar';renderSchedule()">📅 Calendar</button>
+      <button class="sched-view-btn${schedView==='list'?' active':''}" onclick="schedView='list';renderSchedule()">☰ List</button>
+    </div>
+  </div>
+  <div class="cal-nav">
+    <button class="cal-nav-btn" onclick="calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderSchedule()">‹</button>
+    <div class="cal-month-label">${monthLabel}</div>
+    <button class="cal-nav-btn" onclick="calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderSchedule()">›</button>
+    <button style="padding:5px 10px;background:#0a1628;border:1px solid #1e3050;border-radius:4px;color:#5aabff;font-size:10px;cursor:pointer" onclick="calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderSchedule()">Today</button>
+    <button style="padding:5px 10px;background:#0a1628;border:1px solid #1e3050;border-radius:4px;color:#5aabff;font-size:10px;cursor:pointer" onclick="exportICS()">📥 Export ICS</button>
+  </div>
+  <div class="cal-grid">
+    ${['SUN','MON','TUE','WED','THU','FRI','SAT'].map(d=>`<div class="cal-dow">${d}</div>`).join('')}`;
+
+  // Fill grid cells
+  const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+  for (let i = 0; i < totalCells; i++) {
+    let day, month = calMonth, year = calYear, otherMonth = false;
+    if (i < firstDay) {
+      day = daysInPrev - firstDay + i + 1;
+      month = calMonth - 1; if (month < 0) { month = 11; year = calYear - 1; }
+      otherMonth = true;
+    } else if (i >= firstDay + daysInMonth) {
+      day = i - firstDay - daysInMonth + 1;
+      month = calMonth + 1; if (month > 11) { month = 0; year = calYear + 1; }
+      otherMonth = true;
+    } else {
+      day = i - firstDay + 1;
+    }
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday = year===now.getFullYear() && month===now.getMonth() && day===now.getDate();
+    const recruitsOnDay = byDate[dateStr] || [];
+
+    html += `<div class="cal-day${isToday?' today':''}${otherMonth?' other-month':''}"
+      data-date="${dateStr}"
+      ondragover="event.preventDefault();this.classList.add('drag-over')"
+      ondragleave="this.classList.remove('drag-over')"
+      ondrop="calDrop(event,'${dateStr}')">
+      <div class="cal-day-num">${day}</div>`;
+
+    recruitsOnDay.forEach(r => {
+      const nm = q2(r.name);
+      const caller = store.callers[r.name]||'';
+      const callerColor = {OJ:'#f5c842',Leisa:'#4adf7a',Jerome:'#5aabff',Kelsey:'#c080ff'}[caller]||'#607090';
+      const ct = store.callTimes[r.name]||'';
+      const interest = getInterest(r);
+      html += `<div class="cal-recruit-chip"
+        draggable="true"
+        data-name="${r.name.replace(/"/g,'&quot;')}"
+        ondragstart="calDragStart(event,'${nm}')"
+        ondragend="event.target.classList.remove('dragging')"
+        onclick="event.stopPropagation();openInRoster('${nm}')"
+        title="${r.name}${ct?' · '+ct+' PST':''}">
+        <span style="color:${callerColor};font-size:8px;flex-shrink:0">●</span>
+        <span style="overflow:hidden;text-overflow:ellipsis">${r.name.split(' ')[0]} ${(r.name.split(' ')[1]||'')[0]||''}.</span>
+        ${ct?`<span style="font-size:8px;color:#3a6a8c;flex-shrink:0">${ct}</span>`:''}
+        <button class="ics-btn" onclick="event.stopPropagation();exportSingleICS('${nm}')" title="Add to calendar">📥</button>
+      </div>`;
+    });
+
+    // Drop hint for empty days
+    if (!otherMonth) {
+      html += `<div style="font-size:9px;color:#1a2a40;margin-top:4px;text-align:center" onclick="calClickAddDay('${dateStr}')">+</div>`;
+    }
+    html += `</div>`;
+  }
+  html += `</div>`;
+  view.innerHTML = html;
+}
+
+function calDragStart(e, nm) {
+  _dragRecruit = nm;
+  e.dataTransfer.setData('text/plain', nm);
+  e.target.classList.add('dragging');
+}
+
+function calDrop(e, dateStr) {
+  e.preventDefault();
+  document.querySelectorAll('.cal-day').forEach(d => d.classList.remove('drag-over'));
+  const nm = _dragRecruit || e.dataTransfer.getData('text/plain');
+  if (!nm) return;
+  store.callDates[nm] = dateStr;
+  saveStore();
+  renderSchedule();
+}
+
+function calClickAddDay(dateStr) {
+  // Show a small prompt to pick a recruit for this day
+  const name = prompt('Add recruit to ' + dateStr + ':\n(type recruit name)');
+  if (!name) return;
+  const r = getRecruits().find(x => x.name.toLowerCase().includes(name.toLowerCase()));
+  if (!r) { alert('Recruit not found: ' + name); return; }
+  store.callDates[r.name] = dateStr;
+  saveStore();
+  renderSchedule();
+}
+
+function exportICS() {
+  const all = getRecruits().filter(r => store.callDates[r.name]);
+  if (!all.length) { alert('No scheduled calls to export.'); return; }
+  let ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Fresno State VB//Call Hub//EN\nCALNAME:FSU VB Calls\n';
+  all.forEach(r => {
+    const d = store.callDates[r.name].replace(/-/g,'');
+    const t = store.callTimes[r.name]||'09:00 AM';
+    const caller = store.callers[r.name]||'Coach';
+    const ts = new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+    const uid = r.name.replace(/\s/g,'_')+'_'+d+'@fsu-vb';
+    ics += 'BEGIN:VEVENT\nDTSTAMP:'+ts+'\nUID:'+uid+'\nSUMMARY:Call '+r.name+' ('+caller+')\nDTSTART;VALUE=DATE:'+d+'\nDESCRIPTION:'+r.name+' - '+(r.club||'')+' - '+(r.phone||'')+'\nEND:VEVENT\n';
+  });
+  ics += 'END:VCALENDAR';
+  const blob = new Blob([ics], {type:'text/calendar'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'FSU_VB_Calls.ics';
+  a.click();
+}
+
+function exportSingleICS(nm) {
+  const r = getRecruits().find(x => x.name === nm);
+  if (!r || !store.callDates[r.name]) return;
+  const d = store.callDates[r.name].replace(/-/g,'');
+  const caller = store.callers[r.name]||'Coach';
+  const ts2 = new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  let ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//FSU VB//EN\nBEGIN:VEVENT\nDTSTAMP:'+ts2+'\nUID:'+r.name.replace(/\s/g,'_')+'_'+d+'@fsu-vb\nSUMMARY:Call '+r.name+' ('+caller+')\nDTSTART;VALUE=DATE:'+d+'\nDESCRIPTION:'+r.name+' - '+(r.phone||'')+' - '+(store.callTimes[r.name]||'')+'\nEND:VEVENT\nEND:VCALENDAR';
+  const blob = new Blob([ics], {type:'text/calendar'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = r.name.replace(/\s/g,'_') + '_call.ics';
+  a.click();
+}
+
+function renderScheduleList() {
   const all = getRecruits();
   const filterFn = r => scheduleCoachFilter === 'all' || store.callers[r.name] === scheduleCoachFilter;
   const scheduled = all.filter(r => (store.callTimes[r.name] || store.callDates[r.name]) && filterFn(r));
