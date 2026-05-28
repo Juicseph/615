@@ -1642,6 +1642,8 @@ function buildEditPanel(name) {
       ${email ? `<div style="font-size:10px;color:#3a5a7c;margin-top:4px">${email}</div>` : ''}
       <!-- Call time -->
       ${callTime||callDate ? `<div style="margin-top:8px;padding:6px 10px;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.15);border-radius:5px;font-size:11px;color:#f5c842">🕐 ${callDate?fmtDate(callDate)+' · ':''}${callTime} PST${tzConv?` · <span style="color:#90d0ff">${tzConv.time} their time</span>`:''}</div>` : ''}
+      <!-- Weather strip -->
+      <div id="weatherStrip" style="display:none;align-items:center;gap:8px;margin-top:8px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:5px;border:1px solid var(--border-secondary);font-size:11px;color:var(--text-secondary)"></div>
     </div>
 
     <!-- OUTCOME LOGGING -->
@@ -1787,6 +1789,8 @@ function buildEditPanel(name) {
 
   ep.style.display = 'flex';
   ep.classList.add('visible');
+  // Fetch weather for this recruit
+  fetchWeather(r);
 }
 
 
@@ -2648,47 +2652,59 @@ const WX_DESC = {
 async function fetchWeather(r) {
   const strip = document.getElementById('weatherStrip');
   if (!strip) return;
-  strip.classList.add('visible');
-  strip.innerHTML = '<span class="weather-loading">&#127756; Fetching weather...</span>';
+  strip.style.display = 'flex';
+  strip.innerHTML = '🌤 Fetching weather...';
 
-  // Get city from club state
+  // Priority: home address → club address → club state → Germany
+  const homeAddr = store.homeAddresses && store.homeAddresses[r.name];
+  const clubAddr = getClubAddress(r);
   const club = (r.club||'').toUpperCase();
   const isGermany = club.includes('GERMANY');
   let cityQ = null;
+  let useLatLon = null;
 
-  if (isGermany) {
+  if (homeAddr) {
+    const ll = homeAddr.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
+    if (ll) { useLatLon = [parseFloat(ll[1]), parseFloat(ll[2])]; cityQ = homeAddr; }
+    else cityQ = homeAddr.split(',')[0].trim();
+  } else if (clubAddr) {
+    const ll = clubAddr.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
+    if (ll) { useLatLon = [parseFloat(ll[1]), parseFloat(ll[2])]; cityQ = clubAddr; }
+    else cityQ = clubAddr.split(',')[0].trim();
+  } else if (isGermany) {
     cityQ = 'Germany';
   } else {
     const m = club.match(/\(([A-Z]{2})\)$/);
     if (m && STATE_CITY[m[1]]) cityQ = STATE_CITY[m[1]];
   }
 
-  if (!cityQ) { strip.classList.remove('visible'); return; }
-  if (WX_CACHE[cityQ]) { showWeather(strip, WX_CACHE[cityQ], cityQ); return; }
+  if (!cityQ && !useLatLon) { strip.style.display = 'none'; return; }
+  const cacheKey = cityQ || JSON.stringify(useLatLon);
+  if (WX_CACHE[cacheKey]) { showWeather(strip, WX_CACHE[cacheKey], cacheKey); return; }
 
   try {
-    // Geocode the city using Open-Meteo geocoding (free, no key)
-    const geoURL = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityQ.split(',')[0])}&count=1&language=en&format=json`;
-    const geoRes = await fetch(geoURL);
-    const geoData = await geoRes.json();
-    if (!geoData.results || !geoData.results[0]) { strip.classList.remove('visible'); return; }
-    const {latitude, longitude, name, country_code} = geoData.results[0];
-
-    // Fetch current weather from Open-Meteo (free, no key)
-    const wxURL = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode&temperature_unit=fahrenheit&timezone=auto`;
+    let lat, lon, displayCity;
+    if (useLatLon) {
+      [lat, lon] = useLatLon;
+      displayCity = cityQ;
+    } else {
+      const geoURL = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityQ.split(',')[0])}&count=1&language=en&format=json`;
+      const geoRes = await fetch(geoURL);
+      const geoData = await geoRes.json();
+      if (!geoData.results || !geoData.results[0]) { strip.style.display = 'none'; return; }
+      lat = geoData.results[0].latitude;
+      lon = geoData.results[0].longitude;
+      displayCity = geoData.results[0].name;
+    }
+    const wxURL = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&temperature_unit=fahrenheit&timezone=auto`;
     const wxRes = await fetch(wxURL);
     const wxData = await wxRes.json();
     const cur = wxData.current;
-    const result = {
-      temp: Math.round(cur.temperature_2m),
-      code: cur.weathercode,
-      city: name,
-      country: country_code
-    };
-    WX_CACHE[cityQ] = result;
-    showWeather(strip, result, cityQ);
+    const result = { temp: Math.round(cur.temperature_2m), code: cur.weathercode, city: displayCity, country: '' };
+    WX_CACHE[cacheKey] = result;
+    showWeather(strip, result, displayCity);
   } catch(e) {
-    strip.classList.remove('visible');
+    strip.style.display = 'none';
   }
 }
 
