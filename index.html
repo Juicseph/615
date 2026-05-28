@@ -792,8 +792,15 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
         <!-- Clock -->
         <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px">
           <div class="cd-title" style="font-size:11px;letter-spacing:2px">JUNE 15 CALLING DAY</div>
-          <div class="cd-timer" id="cdTimer" style="font-size:40px;letter-spacing:4px;line-height:1">--:--:--:--</div>
-          <div style="font-size:9px;color:#3a5a7c;letter-spacing:1px">DAYS · HRS · MIN · SEC</div>
+          <div style="display:flex;flex-direction:column;line-height:1">
+            <div class="cd-timer" id="cdTimer" style="font-size:40px;letter-spacing:4px;line-height:1">--:--:--:--</div>
+            <div style="display:flex;gap:0;font-size:9px;color:#3a5a7c;letter-spacing:1.5px;margin-top:4px;padding-left:2px">
+              <span style="flex:1;text-align:center">DAYS</span>
+              <span style="flex:1;text-align:center">HRS</span>
+              <span style="flex:1;text-align:center">MIN</span>
+              <span style="flex:1;text-align:center">SEC</span>
+            </div>
+          </div>
           <div id="cdChecklist" style="display:none"></div>
         </div>
         <!-- Search + Add + Filters in one row -->
