@@ -1043,7 +1043,7 @@ const STATUS_CONFIG = {
 };
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let store = { statuses:{}, notes:{}, callTimes:{}, callDates:{}, customPDFs:{}, positions:{}, deleted:{}, hudlLinks:{}, callers:{}, whisperNotes:{}, newRecruits:[], textMsgs:{}, textDates:{}, textTimes:{}, textSent:{}, locations:{}, clubLocations:{}, dobs:{} };
+let store = { statuses:{}, notes:{}, callTimes:{}, callDates:{}, customPDFs:{}, positions:{}, deleted:{}, hudlLinks:{}, callers:{}, whisperNotes:{}, newRecruits:[], textMsgs:{}, textDates:{}, textTimes:{}, textSent:{}, locations:{}, clubLocations:{}, dobs:{}, homeAddresses:{}, clubAddresses:{}, campNotes:{} };
 let activeFilter = 'all';
 let activeRecruit = null;
 let activeTab = 'roster';
@@ -1630,6 +1630,7 @@ function buildEditPanel(name) {
             ${st ? `<span class="badge ${sc.cls}" style="font-size:9px">${sc.label}</span>` : ''}
             ${r.hot ? '<span style="font-size:13px">🔥</span>' : ''}
             ${hudl ? `<a href="${hudl}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:rgba(90,171,255,.1);border:1px solid rgba(90,171,255,.25);border-radius:3px;color:#5aabff;text-decoration:none;font-size:10px;font-weight:700">🎥 Film</a>` : ''}
+            ${store.campNotes&&store.campNotes[name] ? `<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:rgba(255,208,80,.12);border:1px solid rgba(255,208,80,.35);border-radius:3px;color:#ffd080;font-size:10px;font-weight:700">⛺ ${store.campNotes[name]}</span>` : ''}
           </div>
           <div style="font-size:10px;color:#3a5a7c;margin-top:5px">${r.club||''}</div>
         </div>
@@ -1681,6 +1682,10 @@ function buildEditPanel(name) {
           <option value="">— Unassigned —</option>
           ${['OJ','Leisa','Jerome','Kelsey'].map(x=>`<option value="${x}" ${caller===x?'selected':''}>${x}</option>`).join('')}
         </select>
+      </div>
+      <div class="ep-field">
+        <div class="ep-label">Camp / Visit</div>
+        <input class="ep-input" type="text" placeholder="e.g. June Camp, June 20-22" value="${store.campNotes&&store.campNotes[name]||''}" oninput="setCampNote('${nm}',this.value)" style="color:#ffd080">
       </div>
       <div class="ep-field">
         <div class="ep-label">Call Time (PST)</div>
@@ -2260,6 +2265,32 @@ function editInterest(name, val) {
     }
   }
   updateCounts();
+}
+function setCampNote(name, val) {
+  if (!store.campNotes) store.campNotes = {};
+  store.campNotes[name] = val.trim();
+  saveStore();
+  // Update badge in-place without re-render
+  const idKey = esc(name);
+  const badges = document.querySelectorAll(`#item_${idKey} .ep-pos-row span[style*="ffd080"]`);
+  // Badge is in edit panel header - rebuild just that span if visible
+  if (activeRecruit === name) {
+    const posRow = document.querySelector('#editPanel .ep-pos-row');
+    if (posRow) {
+      let campBadge = posRow.querySelector('.camp-badge');
+      if (val.trim()) {
+        if (!campBadge) {
+          campBadge = document.createElement('span');
+          campBadge.className = 'camp-badge';
+          campBadge.style.cssText = 'display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:rgba(255,208,80,.12);border:1px solid rgba(255,208,80,.35);border-radius:3px;color:#ffd080;font-size:10px;font-weight:700';
+          posRow.appendChild(campBadge);
+        }
+        campBadge.textContent = '⛺ ' + val.trim();
+      } else if (campBadge) {
+        campBadge.remove();
+      }
+    }
+  }
 }
 function setClub(name, val) {
   if (!store.clubOverrides) store.clubOverrides = {};
