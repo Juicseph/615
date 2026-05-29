@@ -301,7 +301,7 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 /* ── CALL TRACKER (full-width strip) ── */
 .lb-panel{background:var(--bg-card);border-bottom:1px solid var(--border-secondary);padding:5px 20px;flex-shrink:0;display:flex;align-items:center;gap:0;overflow-x:auto;width:100%;z-index:600;position:relative}
 .lb-title{font-size:9px;font-weight:700;color:#2a4a6c;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;margin-right:14px;flex-shrink:0}
-.lb-rows{display:flex;gap:0;flex:1}
+.lb-rows{display:flex;overflow:hidden;transition:all .3s;gap:0;flex:1}
 .lb-row{display:flex;align-items:center;gap:7px;padding:0 14px;border-left:1px solid #0f1e38;flex:1;min-width:0}
 .lb-row:first-child{border-left:none;padding-left:0}
 .lb-coach{font-size:13px;font-weight:700;color:#ffffff;white-space:nowrap;min-width:52px;font-family:"Oswald",sans-serif;letter-spacing:.5px}
@@ -695,7 +695,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 #panelResizer:hover, #panelResizer.dragging{background:var(--accent)}
 #tabRoster.recruit-open #panelResizer{display:block}
 
-#welcomeRoster{display:flex;flex-direction:column;gap:16px}
+#welcomeRoster{display:flex;flex-direction:column;gap:12px}
 .wr-pos-group{display:flex;flex-direction:column;gap:0}
 .wr-pos-label{font-family:"Oswald",sans-serif;font-size:24px;font-weight:700;color:#b8001e;letter-spacing:2px;text-transform:uppercase;padding:0 0 8px;border-bottom:1px solid #0f1e38;margin-bottom:8px}
 .wr-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px}
@@ -898,11 +898,12 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 <div class="main">
   <!-- ROSTER TAB CONTENT -->
   <div class="content-area" id="tabRoster">
-    <div id="welcomeMsg" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0">
+    <div id="welcomeMsg" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;justify-content:flex-start">
       <!-- Countdown strip -->
-      <div id="stripPanel" style="flex-shrink:0;background:rgba(0,0,0,.2);border-bottom:1px solid #0f1e38;padding:12px 24px 10px;transition:max-height .35s cubic-bezier(.4,0,.2,1),opacity .3s;max-height:400px;overflow:hidden">
-
-        <!-- Row 1: Next Call | Rings | Coach Bars — all inline -->
+      <div <div style="flex-shrink:0;background:rgba(0,0,0,.2);border-bottom:1px solid #0f1e38;padding:12px 24px 10px">
+        <!-- Collapsible: rings + next call + coach bars -->
+        <div id="stripPanel" style="overflow:hidden;transition:max-height .3s cubic-bezier(.4,0,.2,1),opacity .25s;max-height:300px;opacity:1">
+<!-- Row 1: Next Call | Rings | Coach Bars — all inline -->
         <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
 
           <!-- Next call spotlight -->
@@ -974,8 +975,9 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
           </div>
 
         </div>
+        </div>
 
-                <!-- Row 2: Search + Add + Bulk -->
+        <!-- Row 2: Search + Add + Bulk -->
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
           <div style="position:relative;flex:1">
             <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#3a5a7c;font-size:13px">🔍</span>
@@ -1008,9 +1010,9 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
         <!-- hidden compat -->
         <div id="cdTimer" style="display:none"></div>
         <div id="cdChecklist" style="display:none"></div>
-      </div><!-- /stripPanel -->
+      </div>
       <!-- Full roster grid by position -->
-      <div id="welcomeRoster" style="flex:1;overflow-y:auto;padding:16px 20px;min-height:0"></div>
+      <div id="welcomeRoster" style="flex:1;overflow-y:auto;padding:8px 20px 20px;min-height:0"></div>
     </div>
     <div id="editPanel"></div>
     <div id="panelResizer" title="Drag to resize"></div>
@@ -6841,20 +6843,18 @@ let _stripCollapsed = false;
 function toggleStrip() {
   _stripCollapsed = !_stripCollapsed;
   const icon = document.getElementById('stripToggleIcon');
-  const rows = document.getElementById('lbRows');
   const strip = document.getElementById('stripPanel');
-  const lbPanel = document.getElementById('lbPanel');
   if (_stripCollapsed) {
-    if (rows) { rows.style.transition='all .3s'; rows.style.maxHeight='0'; rows.style.overflow='hidden'; rows.style.opacity='0'; }
     if (icon) icon.textContent = '▼';
-    if (strip) { strip.style.maxHeight='0'; strip.style.opacity='0'; strip.style.overflow='hidden'; strip.style.transition='max-height .35s cubic-bezier(.4,0,.2,1),opacity .3s'; }
-    if (lbPanel) lbPanel.style.padding = '3px 20px';
+    if (strip) { strip.style.maxHeight = '0'; strip.style.opacity = '0'; strip.style.marginBottom = '-2px'; }
   } else {
-    if (rows) { rows.style.maxHeight='200px'; rows.style.overflow=''; rows.style.opacity='1'; }
     if (icon) icon.textContent = '▲';
-    if (strip) { strip.style.maxHeight='400px'; strip.style.opacity='1'; strip.style.overflow=''; }
-    if (lbPanel) lbPanel.style.padding = '';
+    if (strip) { strip.style.maxHeight = '300px'; strip.style.opacity = '1'; strip.style.marginBottom = ''; }
   }
+  // Force immediate layout recalculation
+  const wr = document.getElementById('welcomeRoster');
+  if (wr) { void wr.offsetHeight; } // trigger reflow
+  if (typeof renderWelcomeRoster === 'function') renderWelcomeRoster();
 }
 
 // ── Font Size Controls ────────────────────────────────────────────
