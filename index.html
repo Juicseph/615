@@ -862,83 +862,64 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
   <div class="content-area" id="tabRoster">
     <div id="welcomeMsg" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0">
       <!-- Countdown strip -->
-      <div style="flex-shrink:0;background:rgba(0,0,0,.25);border-bottom:1px solid #0f1e38;padding:14px 28px 12px">
-        <div style="display:flex;align-items:center;gap:28px;flex-wrap:wrap">
-          <!-- Ring timers -->
-          <div style="display:flex;gap:14px;align-items:center">
-            <div style="text-align:center">
-              <div style="font-family:'Oswald',sans-serif;font-size:10px;color:#b8001e;letter-spacing:2px;margin-bottom:6px">JUNE 15 · 9PM PST</div>
-              <div style="display:flex;gap:10px" id="ringClocks">
-                <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-                  <svg id="cdRingD_svg" width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg)">
-                    <circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/>
-                    <circle id="cdRingD" cx="36" cy="36" r="30" fill="none" stroke="#b8001e" stroke-width="5" stroke-linecap="round"
-                      stroke-dasharray="188.5" stroke-dashoffset="188.5"
-                      style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #b8001e88)"/>
-                    <text id="cdRingD_num" x="36" y="36" text-anchor="middle" dominant-baseline="central"
-                      font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff"
-                      style="transform:rotate(90deg);transform-origin:36px 36px">--</text>
-                  </svg>
-                  <div style="font-size:8px;color:#3a5a7c;letter-spacing:1.5px">DAYS</div>
-                </div>
-                <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-                  <svg id="cdRingH_svg" width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg)">
-                    <circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/>
-                    <circle id="cdRingH" cx="36" cy="36" r="30" fill="none" stroke="#f5c842" stroke-width="5" stroke-linecap="round"
-                      stroke-dasharray="188.5" stroke-dashoffset="188.5"
-                      style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #f5c84288)"/>
-                    <text id="cdRingH_num" x="36" y="36" text-anchor="middle" dominant-baseline="central"
-                      font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff"
-                      style="transform:rotate(90deg);transform-origin:36px 36px">--</text>
-                  </svg>
-                  <div style="font-size:8px;color:#3a5a7c;letter-spacing:1.5px">HRS</div>
-                </div>
-                <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-                  <svg id="cdRingM_svg" width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg)">
-                    <circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/>
-                    <circle id="cdRingM" cx="36" cy="36" r="30" fill="none" stroke="#4adf7a" stroke-width="5" stroke-linecap="round"
-                      stroke-dasharray="188.5" stroke-dashoffset="188.5"
-                      style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #4adf7a88)"/>
-                    <text id="cdRingM_num" x="36" y="36" text-anchor="middle" dominant-baseline="central"
-                      font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff"
-                      style="transform:rotate(90deg);transform-origin:36px 36px">--</text>
-                  </svg>
-                  <div style="font-size:8px;color:#3a5a7c;letter-spacing:1.5px">MIN</div>
-                </div>
-                <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-                  <svg id="cdRingS_svg" width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg)">
-                    <circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/>
-                    <circle id="cdRingS" cx="36" cy="36" r="30" fill="none" stroke="#5aabff" stroke-width="5" stroke-linecap="round"
-                      stroke-dasharray="188.5" stroke-dashoffset="188.5"
-                      style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #5aabff88)"/>
-                    <text id="cdRingS_num" x="36" y="36" text-anchor="middle" dominant-baseline="central"
-                      font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff"
-                      style="transform:rotate(90deg);transform-origin:36px 36px">--</text>
-                  </svg>
-                  <div style="font-size:8px;color:#3a5a7c;letter-spacing:1.5px">SEC</div>
-                </div>
-                </div>
-              </div>
+      <div style="flex-shrink:0;background:rgba(0,0,0,.2);border-bottom:1px solid #0f1e38;padding:12px 24px 10px">
+
+        <!-- Row 1: Rings centered -->
+        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:10px">
+          <div style="font-family:'Oswald',sans-serif;font-size:9px;color:#b8001e;letter-spacing:2px;margin-bottom:5px">JUNE 15 · 9PM PST</div>
+          <div style="display:flex;gap:8px" id="ringClocks">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+              <svg width="60" height="60" viewBox="0 0 72 72" style="transform:rotate(-90deg)"><circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/><circle id="cdRingD" cx="36" cy="36" r="30" fill="none" stroke="#b8001e" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #b8001e88)"/><text id="cdRingD_num" x="36" y="36" text-anchor="middle" dominant-baseline="central" font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff" style="transform:rotate(90deg);transform-origin:36px 36px">--</text></svg>
+              <div style="font-size:7px;color:#3a5a7c;letter-spacing:1.5px">DAYS</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+              <svg width="60" height="60" viewBox="0 0 72 72" style="transform:rotate(-90deg)"><circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/><circle id="cdRingH" cx="36" cy="36" r="30" fill="none" stroke="#f5c842" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #f5c84288)"/><text id="cdRingH_num" x="36" y="36" text-anchor="middle" dominant-baseline="central" font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff" style="transform:rotate(90deg);transform-origin:36px 36px">--</text></svg>
+              <div style="font-size:7px;color:#3a5a7c;letter-spacing:1.5px">HRS</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+              <svg width="60" height="60" viewBox="0 0 72 72" style="transform:rotate(-90deg)"><circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/><circle id="cdRingM" cx="36" cy="36" r="30" fill="none" stroke="#4adf7a" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #4adf7a88)"/><text id="cdRingM_num" x="36" y="36" text-anchor="middle" dominant-baseline="central" font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff" style="transform:rotate(90deg);transform-origin:36px 36px">--</text></svg>
+              <div style="font-size:7px;color:#3a5a7c;letter-spacing:1.5px">MIN</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+              <svg width="60" height="60" viewBox="0 0 72 72" style="transform:rotate(-90deg)"><circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/><circle id="cdRingS" cx="36" cy="36" r="30" fill="none" stroke="#5aabff" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #5aabff88)"/><text id="cdRingS_num" x="36" y="36" text-anchor="middle" dominant-baseline="central" font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff" style="transform:rotate(90deg);transform-origin:36px 36px">--</text></svg>
+              <div style="font-size:7px;color:#3a5a7c;letter-spacing:1.5px">SEC</div>
             </div>
           </div>
         </div>
-<!-- Search + Add + Filters in one row -->
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <div style="flex:1;min-width:200px;position:relative">
+
+        <!-- Row 2: Search + Add + Bulk -->
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+          <div style="position:relative;flex:1">
             <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#3a5a7c;font-size:13px">🔍</span>
             <input type="text" id="searchInput" placeholder="Search by name or club..." oninput="renderList();renderWelcomeRoster()"
-              style="width:100%;padding:9px 12px 9px 32px;background:#0a1628;border:1px solid #1e3560;border-radius:6px;color:#ffffff;font-size:13px;font-family:'Source Sans 3',sans-serif;box-sizing:border-box">
+              style="width:100%;padding:7px 12px 7px 32px;background:#0a1628;border:1px solid #1e3560;border-radius:6px;color:#ffffff;font-size:12px;font-family:'Source Sans 3',sans-serif;box-sizing:border-box">
           </div>
-          <button onclick="openAddRecruit()" style="padding:9px 18px;background:#0d3a14;border:1px solid #2a7a3a;border-radius:6px;color:#4adf7a;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">+ Add Recruit</button>
-          <button onclick="toggleBulkMode()" id="bulkModeBtn" style="padding:9px 14px;background:#0a1628;border:1px solid #1e3560;border-radius:6px;color:#5a7ab8;font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0">⊠ Bulk Assign</button>
-          <!-- Quick filters inline -->
-          <div style="display:flex;gap:5px;flex-wrap:wrap">
-            <button class="filter-btn active" onclick="setFilter('all',this)" id="filterAll">All</button>
-            <button class="filter-btn" onclick="setFilter('hot',this)">🔥 Hot</button>
-            <button class="filter-btn" onclick="setFilter('committed',this)">🎉 Committed</button>
-            <button class="filter-btn" onclick="setFilter('ghost',this)">👻 Ghost</button>
-          </div>
+          <button onclick="openAddRecruit()" style="padding:7px 16px;background:#0d3a14;border:1px solid #2a7a3a;border-radius:6px;color:#4adf7a;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">+ Add Recruit</button>
+          <button onclick="toggleBulkMode()" id="bulkModeBtn" style="padding:7px 12px;background:#0a1628;border:1px solid #1e3560;border-radius:6px;color:#5a7ab8;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">⊠ Bulk Assign</button>
         </div>
+
+        <!-- Row 3: All filters -->
+        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+          <button class="filter-btn active" onclick="setFilter('all',this)" id="filterAll">All</button>
+          <button class="filter-btn" onclick="setFilter('hot',this)">🔥 Hot</button>
+          <button class="filter-btn" onclick="setFilter('5',this)">⭐ 5/5</button>
+          <button class="filter-btn" onclick="setFilter('interested',this)">🟢 Interested</button>
+          <button class="filter-btn" onclick="setFilter('followup',this)">🔵 Follow Up</button>
+          <button class="filter-btn" onclick="setFilter('committed',this)">🎉 Committed</button>
+          <button class="filter-btn" onclick="setFilter('scheduled',this)">🕐 Scheduled</button>
+          <button class="filter-btn" onclick="setFilter('unassigned',this)">📵 Unassigned</button>
+          <button class="filter-btn" onclick="setFilter('guides',this)">✦ Has Guide</button>
+          <button class="filter-btn" onclick="setFilter('ghost',this)">👻 Ghost</button>
+          <button class="filter-btn" onclick="setFilter('L',this)">L</button>
+          <button class="filter-btn" onclick="setFilter('OH',this)">OH</button>
+          <button class="filter-btn" onclick="setFilter('RS',this)">RS</button>
+          <button class="filter-btn" onclick="setFilter('MB',this)">MB</button>
+          <button class="filter-btn" onclick="setFilter('S',this)">S</button>
+        </div>
+
+        <!-- hidden compat -->
+        <div id="cdTimer" style="display:none"></div>
+        <div id="cdChecklist" style="display:none"></div>
       </div>
       <!-- Full roster grid by position -->
       <div id="welcomeRoster" style="flex:1;overflow-y:auto;padding:16px 20px;min-height:0"></div>
