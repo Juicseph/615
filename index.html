@@ -122,7 +122,7 @@ html{height:100%;overflow:hidden}
   --scroll-thumb:#483060;
 }
 
-body{font-family:"Source Sans 3",sans-serif;background:var(--bg-base);color:var(--text-primary);height:100%;overflow:hidden;display:flex;flex-direction:column;position:fixed;width:100%;top:0;left:0}
+body{font-family:"Source Sans 3",sans-serif;background:var(--bg-base);color:var(--text-primary);height:100vh;overflow:hidden;display:flex;flex-direction:column;position:fixed;width:100%;top:0;left:0}
 
 /* ── HEADER ── */
 header{background:var(--header-bg);border-bottom:3px solid var(--header-border);padding:0 24px;display:flex;align-items:center;gap:16px;flex-shrink:0;min-height:56px;max-height:56px;box-shadow:0 4px 24px rgba(0,0,0,.6);z-index:600;position:relative}
@@ -153,11 +153,11 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .tab-btn:hover:not(.active){color:var(--text-secondary);background:var(--recruit-hover)}
 
 /* ── LAYOUT ── */
-.main{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--bg-base)}
+.main{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--bg-base);height:0}
 .main.rp-fullwidth{grid-template-columns:1fr}
 .main.rp-fullwidth .sidebar{display:none}
 .sidebar{background:var(--sidebar-bg);border-right:1px solid var(--border-primary);display:flex;flex-direction:column;overflow:hidden;min-height:0;position:relative;z-index:10}
-.content-area{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0}
+.content-area{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0;justify-content:flex-start;align-items:stretch;height:100%}
 /* tabRoster: column by default (welcome screen), row when recruit open */
 #tabRoster{display:flex;flex-direction:column;flex:1;min-height:0}
 #tabRoster.recruit-open{flex-direction:row}
@@ -586,7 +586,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 .ab-name{font-family:"Oswald",sans-serif;font-size:15px;color:#fff;font-weight:600}
 .ab-detail{font-size:10px;color:#3a6a4a;margin-top:2px}
 /* ── TEXT SCHEDULE VIEW ── */
-.text-schedule-view{flex:1;overflow-y:auto;padding:20px 24px}
+.text-schedule-view{flex:1;overflow-y:auto;padding:20px 24px;min-height:0}
 .text-schedule-view h2{font-family:"Oswald",sans-serif;font-size:20px;color:#fff;margin-bottom:4px}
 .ts-sub{font-size:12px;color:#3a5a80;margin-bottom:18px}
 .ts-empty{text-align:center;padding:60px 20px;color:#1e3050}
@@ -610,7 +610,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 .ts-stat-l{font-size:10px;color:#3a5a80;text-transform:uppercase;letter-spacing:.8px}
 
 /* ── SCHEDULE VIEW ── */
-.schedule-view{flex:1;overflow-y:auto;padding:20px 24px}
+.schedule-view{flex:1;overflow-y:auto;padding:20px 24px;min-height:0}
 .schedule-view h2{font-family:"Oswald",sans-serif;font-size:20px;color:#fff;margin-bottom:4px}
 .schedule-view .sch-sub{font-size:12px;color:#3a5a80;margin-bottom:10px}
 .coach-filter-bar{display:flex;gap:0;border-bottom:1px solid #192e50;margin-bottom:14px;overflow-x:auto}
@@ -768,9 +768,12 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 
 
 /* ── Expand morph overlay ── */
-#morphOverlay{position:fixed;z-index:8000;pointer-events:none;background:transparent;border-radius:4px;overflow:hidden;transform-origin:top left}
+#morphOverlay{position:fixed;z-index:9500;pointer-events:none;background:transparent;border-radius:4px;overflow:hidden;transform-origin:top left}
+#morphBackdrop{position:fixed;inset:0;z-index:7999;background:rgba(0,0,0,.5);display:none;cursor:pointer}
 #morphOverlay.active{pointer-events:all}
-#morphOverlay .mo-inner{height:100%;overflow-y:auto;background:#0a1628;border:1px solid #2a4a7c;border-radius:inherit;opacity:0;transform:scale(.95);transition:opacity .3s .1s,transform .35s .05s cubic-bezier(.34,1.1,.64,1)}
+#morphBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9499;display:none;backdrop-filter:blur(2px)}
+#morphBackdrop.visible{display:block}
+#morphOverlay .mo-inner{height:100%;overflow-y:auto;background:#060e1c;border:1px solid #2a4a7c;border-radius:inherit;opacity:0;transform:scale(.95);transition:opacity .3s .1s,transform .35s .05s cubic-bezier(.34,1.1,.64,1);color:#ffffff}
 #morphOverlay.active .mo-inner{opacity:1;transform:scale(1)}
 #morphOverlay .mo-close{position:sticky;top:0;float:right;margin:10px 10px 0 0;width:28px;height:28px;border-radius:50%;background:#0d1e38;border:1px solid #2a4a7c;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1}
 
@@ -780,6 +783,26 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
   0%,100%{opacity:.9}50%{opacity:.7}
 }
 #cdRingS circle[id]{animation:ringPulse 1s ease-in-out infinite}
+
+
+/* ── Next Call Ticker ── */
+@keyframes ncScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+#ncTickerTrack.scrolling{animation:ncScroll var(--scroll-dur,30s) linear infinite}
+#ncTickerTrack.scrolling:hover{animation-play-state:paused}
+.nc-chip{display:inline-flex;align-items:center;gap:7px;padding:4px 10px;background:#0d1e38;border:1px solid #1a3050;border-radius:4px;cursor:pointer;transition:border-color .15s;flex-shrink:0}
+.nc-chip:hover{border-color:#3a6aac;background:#152444}
+.nc-chip.up-next{border-color:#f5c84288;background:#1a1808}
+.nc-chip-name{font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;color:#ffffff}
+.nc-chip-meta{font-size:10px;color:#5a8ab0}
+.nc-chip-time{font-family:'Oswald',monospace;font-size:12px;font-weight:700;color:#f5c842;flex-shrink:0}
+.nc-chip-caller{display:inline-block;font-size:9px;font-weight:800;padding:1px 4px;border-radius:2px;color:#000;flex-shrink:0}
+
+
+/* ── Collapsible strip ── */
+.lb-panel.collapsed .lb-rows{display:none!important}
+.lb-panel.collapsed .lb-stat,.lb-panel.collapsed .lb-dot{display:none}
+#stripPanel{transition:max-height .35s cubic-bezier(.4,0,.2,1),opacity .3s;overflow:hidden;max-height:200px;opacity:1;flex-shrink:0}
+#stripPanel.collapsed{max-height:0!important;opacity:0;pointer-events:none}
 
 </style>
 </head>
@@ -853,7 +876,10 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 
 <!-- Call Tracker full-width strip -->
 <div class="lb-panel" id="lbPanel">
-  <div class="lb-title">&#128222; Calls</div>
+  <div class="lb-title" style="cursor:pointer;user-select:none;display:flex;align-items:center;gap:6px" onclick="toggleStrip()" title="Collapse/expand strip">
+    &#128222; Calls
+    <span id="stripToggleIcon" style="font-size:10px;color:#3a5a7c;margin-left:2px">▲</span>
+  </div>
   <div class="lb-rows" id="lbRows"></div>
 </div>
 
@@ -874,21 +900,21 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
   <div class="content-area" id="tabRoster">
     <div id="welcomeMsg" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0">
       <!-- Countdown strip -->
+      <div id="stripPanel" style="flex-shrink:0;transition:max-height .35s cubic-bezier(.4,0,.2,1),opacity .3s;max-height:300px;opacity:1;overflow:hidden">
       <div style="flex-shrink:0;background:rgba(0,0,0,.2);border-bottom:1px solid #0f1e38;padding:12px 24px 10px">
 
         <!-- Row 1: Next Call | Rings | Coach Bars — all inline -->
         <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
 
           <!-- Next call spotlight -->
-          <div id="nextCallSpot" style="background:#070f1e;border:1px solid #1a2e50;border-radius:6px;padding:7px 12px;display:flex;align-items:center;gap:10px;flex:1.2;min-width:0">
-            <div style="font-family:'Oswald',sans-serif;font-size:8px;color:#3a5a7c;letter-spacing:1.5px;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap">▶ UP NEXT</div>
-            <div style="flex:1;min-width:0">
-              <div id="ncName" style="font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
-              <div id="ncDetail" style="font-size:10px;color:#5a8ab0;margin-top:2px">No calls scheduled</div>
-            </div>
-            <div style="text-align:center;flex-shrink:0">
-              <div id="ncTimer" style="font-family:'Oswald',monospace;font-size:20px;font-weight:700;color:#f5c842;letter-spacing:1px;line-height:1">--:--</div>
-              <div style="font-size:7px;color:#3a5a7c;letter-spacing:1px;margin-top:2px">TO CALL</div>
+          <div id="nextCallSpot" style="background:#070f1e;border:1px solid #1a2e50;border-radius:6px;padding:7px 10px;display:flex;align-items:center;gap:10px;flex:1.4;min-width:0;overflow:hidden">
+            <div style="font-family:'Oswald',sans-serif;font-size:8px;color:#3a5a7c;letter-spacing:1.5px;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;flex-shrink:0">▶ CALLS</div>
+            <!-- Scrolling ticker -->
+            <div style="flex:1;min-width:0;overflow:hidden;position:relative">
+              <div id="ncTickerTrack" style="display:flex;gap:28px;white-space:nowrap;will-change:transform">
+                <div id="ncTickerInner" style="display:inline-flex;gap:28px;align-items:center"></div>
+                <div id="ncTickerInner2" style="display:inline-flex;gap:28px;align-items:center"></div>
+              </div>
             </div>
           </div>
 
@@ -984,6 +1010,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
         <div id="cdTimer" style="display:none"></div>
         <div id="cdChecklist" style="display:none"></div>
       </div>
+      </div><!-- /stripPanel -->
       <!-- Full roster grid by position -->
       <div id="welcomeRoster" style="flex:1;overflow-y:auto;padding:16px 20px;min-height:0"></div>
     </div>
@@ -993,12 +1020,12 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
   </div>
 
   <!-- SCHEDULE TAB CONTENT -->
-  <div class="content-area" id="tabSchedule" style="display:none">
+  <div class="content-area" id="tabSchedule" style="display:none;flex-direction:column">
     <div class="schedule-view" id="scheduleView"></div>
   </div>
 
   <!-- TEXT SCHEDULE TAB CONTENT -->
-  <div class="content-area" id="tabTexts" style="display:none">
+  <div class="content-area" id="tabTexts" style="display:none;flex-direction:column">
     <div class="text-schedule-view" id="textScheduleView"></div>
   </div>
 
@@ -1046,7 +1073,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
   </div>
 
   <!-- DEPTH CHART TAB CONTENT -->
-  <div class="content-area" id="tabDepth" style="display:none">
+  <div class="content-area" id="tabDepth" style="display:none;flex-direction:column">
     <div id="depthView" style="width:100%;height:100%;overflow-y:auto;background:#07111f;padding:20px 24px">
       <div style="font-family:'Oswald',sans-serif;font-size:20px;color:#fff;margin-bottom:4px">&#127951; CLASS DEPTH CHART</div>
       <div style="font-size:12px;color:#3a5a80;margin-bottom:20px">Hot recruits &amp; committed players by position — empty slots glow red</div>
@@ -1055,8 +1082,8 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
   </div>
 
   <!-- COMMAND CENTER TAB CONTENT -->
-  <div class="content-area" id="tabCommand" style="display:none">
-    <div id="commandView" style="width:100%;height:100%;background:#040c18;overflow-y:auto"></div>
+  <div class="content-area" id="tabCommand" style="display:none;flex-direction:column">
+    <div id="commandView" style="flex:1;background:#040c18;overflow-y:auto;min-height:0;display:flex;flex-direction:column"></div>
   </div>
 
   <!-- SIGNING WALL TAB CONTENT -->
@@ -6674,6 +6701,8 @@ function morphOpen(nm, cardEl) {
 }
 
 function morphClose() {
+  const bd = document.getElementById('morphBackdrop');
+  if (bd) bd.style.display = 'none';
   const ov = document.getElementById('morphOverlay');
   if (!ov) return;
   const inner = ov.querySelector('.mo-inner');
@@ -6690,13 +6719,11 @@ function morphClose() {
 let _ncInterval = null;
 
 function updateNextCallSpot() {
-  const nameEl  = document.getElementById('ncName');
-  const detEl   = document.getElementById('ncDetail');
-  const timerEl = document.getElementById('ncTimer');
-  if (!nameEl) return;
+  const track = document.getElementById('ncTickerTrack');
+  const inner1 = document.getElementById('ncTickerInner');
+  const inner2 = document.getElementById('ncTickerInner2');
+  if (!track || !inner1) return;
 
-  // Find the next unfinished scheduled recruit (has callTime, no Connected note)
-  const now = new Date();
   function parseCallTime(t) {
     if (!t) return null;
     const m = t.match(/(\d{1,2}):?(\d{2})?\s*(am|pm|a|p)?/i);
@@ -6710,9 +6737,10 @@ function updateNextCallSpot() {
     return d;
   }
 
+  const now = new Date();
   const candidates = getRecruits().filter(r => {
     const notes = store.notes[r.name]||'';
-    const done = notes.includes('✓ Connected') || notes.includes('✗ No Answer') || notes.includes('✉ Left Voicemail');
+    const done = notes.includes('✓ Connected')||notes.includes('✗ No Answer')||notes.includes('✉ Left Voicemail');
     return store.callTimes[r.name] && !done;
   }).sort((a,b) => {
     const ta = parseCallTime(store.callTimes[a.name]);
@@ -6721,42 +6749,55 @@ function updateNextCallSpot() {
   });
 
   if (!candidates.length) {
-    nameEl.textContent = 'All calls done!';
-    detEl.textContent = 'Great work today';
-    timerEl.textContent = '✓';
-    timerEl.style.color = '#4adf7a';
+    inner1.innerHTML = '<div class="nc-chip up-next"><span class="nc-chip-name" style="color:#4adf7a">✓ All calls complete!</span></div>';
+    inner2.innerHTML = inner1.innerHTML;
+    track.classList.remove('scrolling');
     return;
   }
 
-  const r = candidates[0];
-  const caller = store.callers[r.name]||'';
-  const callerCol = {OJ:'#f5c842',Leisa:'#ff3a3a',Jerome:'#4a90ff',Kelsey:'#2ecc71'}[caller]||'#5a8ab0';
-  const ct = store.callTimes[r.name]||'';
-  const callTime = parseCallTime(ct);
-  const interest = getInterest(r);
+  const CALLER_COLS = {OJ:'#f5c842',Leisa:'#ff3a3a',Jerome:'#4a90ff',Kelsey:'#2ecc71'};
 
-  nameEl.textContent = r.name;
-  nameEl.onclick = () => openInRoster(q2(r.name));
-  nameEl.style.cursor = 'pointer';
-  detEl.innerHTML = getPos(r) + (interest ? ' · ★'+interest : '') + (caller ? ' · <span style="color:'+callerCol+';font-weight:700">'+caller+'</span>' : '') + (ct ? ' · '+ct+' PST' : '');
-
-  if (callTime) {
-    const diff = callTime - now;
-    if (diff > 0) {
-      const h = Math.floor(diff/3600000);
-      const m = Math.floor((diff%3600000)/60000);
-      const s = Math.floor((diff%60000)/1000);
-      timerEl.textContent = h > 0 ? h+'h '+String(m).padStart(2,'0')+'m' : String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-      timerEl.style.color = diff < 300000 ? '#ff4060' : '#f5c842';
-    } else {
-      timerEl.textContent = 'NOW';
-      timerEl.style.color = '#ff4060';
-    }
-  } else {
-    timerEl.textContent = ct||'—';
-    timerEl.style.color = '#5a8ab0';
+  function buildChips(recruits) {
+    return recruits.map((r, i) => {
+      const nm = q2(r.name);
+      const caller = store.callers[r.name]||'';
+      const col = CALLER_COLS[caller]||'#607090';
+      const ct = store.callTimes[r.name]||'';
+      const callTime = parseCallTime(ct);
+      let timeLabel = ct;
+      if (callTime) {
+        const diff = callTime - now;
+        if (diff > 0) {
+          const h = Math.floor(diff/3600000);
+          const m2 = Math.floor((diff%3600000)/60000);
+          timeLabel = h > 0 ? h+'h '+String(m2).padStart(2,'0')+'m' : String(m2).padStart(2,'0')+'m';
+        } else {
+          timeLabel = 'NOW';
+        }
+      }
+      const isNext = i === 0;
+      const pos = getPos(r);
+      const interest = getInterest(r);
+      return '<div class="nc-chip'+(isNext?' up-next':'')+'" onclick="openInRoster(\''+nm+'\')">'
+        +(caller ? '<span class="nc-chip-caller" style="background:'+col+'">'+caller[0]+'</span>' : '')
+        +'<span class="nc-chip-name">'+r.name.split(' ')[0]+' '+(r.name.split(' ')[1]||'')[0]+'.</span>'
+        +'<span class="nc-chip-meta">'+pos+(interest?' ★'+interest:'')+'</span>'
+        +'<span class="nc-chip-time">'+timeLabel+'</span>'
+        +'</div>';
+    }).join('');
   }
+
+  const chips = buildChips(candidates);
+  inner1.innerHTML = chips;
+  inner2.innerHTML = chips;
+
+  // Set scroll speed based on count
+  const dur = Math.max(15, candidates.length * 3);
+  track.style.setProperty('--scroll-dur', dur+'s');
+  track.classList.add('scrolling');
 }
+
+
 
 // ── Coach Progress Bars ───────────────────────────────────────────
 function updateCoachBars() {
@@ -6787,6 +6828,35 @@ function updateCoachBars() {
 function updateStripPanels() {
   updateNextCallSpot();
   updateCoachBars();
+}
+
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const ov = document.getElementById('morphOverlay');
+    if (ov && ov.classList.contains('active')) morphClose();
+  }
+});
+
+// ── Strip collapse ────────────────────────────────────────────────
+let _stripCollapsed = false;
+function toggleStrip() {
+  _stripCollapsed = !_stripCollapsed;
+  const icon = document.getElementById('stripToggleIcon');
+  const rows = document.getElementById('lbRows');
+  const strip = document.getElementById('stripPanel');
+  const lbPanel = document.getElementById('lbPanel');
+  if (_stripCollapsed) {
+    if (rows) { rows.style.transition='all .3s'; rows.style.maxHeight='0'; rows.style.overflow='hidden'; rows.style.opacity='0'; }
+    if (icon) icon.textContent = '▼';
+    if (strip) { strip.style.maxHeight='0'; strip.style.opacity='0'; strip.style.overflow='hidden'; strip.style.transition='max-height .35s cubic-bezier(.4,0,.2,1),opacity .3s'; }
+    if (lbPanel) lbPanel.style.padding = '3px 20px';
+  } else {
+    if (rows) { rows.style.maxHeight='200px'; rows.style.overflow=''; rows.style.opacity='1'; }
+    if (icon) icon.textContent = '▲';
+    if (strip) { strip.style.maxHeight='400px'; strip.style.opacity='1'; strip.style.overflow=''; }
+    if (lbPanel) lbPanel.style.padding = '';
+  }
 }
 
 // ── Font Size Controls ────────────────────────────────────────────
