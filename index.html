@@ -774,6 +774,13 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 #morphOverlay.active .mo-inner{opacity:1;transform:scale(1)}
 #morphOverlay .mo-close{position:sticky;top:0;float:right;margin:10px 10px 0 0;width:28px;height:28px;border-radius:50%;background:#0d1e38;border:1px solid #2a4a7c;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1}
 
+
+/* ── Ring clock neon ── */
+@keyframes ringPulse{
+  0%,100%{opacity:.9}50%{opacity:.7}
+}
+#cdRingS circle[id]{animation:ringPulse 1s ease-in-out infinite}
+
 </style>
 </head>
 <body>
@@ -855,22 +862,31 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
   <div class="content-area" id="tabRoster">
     <div id="welcomeMsg" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0">
       <!-- Countdown strip -->
-      <div style="flex-shrink:0;background:rgba(0,0,0,.2);border-bottom:1px solid #0f1e38;padding:18px 28px 16px">
-        <!-- Clock -->
-        <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px">
-          <div class="cd-title" style="font-size:11px;letter-spacing:2px">JUNE 15 CALLING DAY</div>
-          <div style="display:flex;flex-direction:column;line-height:1">
-            <div class="cd-timer" id="cdTimer" style="font-size:40px;letter-spacing:4px;line-height:1">--:--:--:--</div>
-            <div style="display:flex;gap:0;font-size:9px;color:#3a5a7c;letter-spacing:1.5px;margin-top:4px;padding-left:2px">
-              <span style="flex:1;text-align:center">DAYS</span>
-              <span style="flex:1;text-align:center">HRS</span>
-              <span style="flex:1;text-align:center">MIN</span>
-              <span style="flex:1;text-align:center">SEC</span>
+      <div style="flex-shrink:0;background:rgba(0,0,0,.25);border-bottom:1px solid #0f1e38;padding:14px 28px 12px">
+        <div style="display:flex;align-items:center;gap:28px;flex-wrap:wrap">
+          <!-- Ring timers -->
+          <div style="display:flex;gap:14px;align-items:center">
+            <div style="text-align:center">
+              <div style="font-family:'Oswald',sans-serif;font-size:10px;color:#b8001e;letter-spacing:2px;margin-bottom:6px">JUNE 15 · 9PM PST</div>
+              <div style="display:flex;gap:10px" id="ringClocks">
+                ${[['cdRingD','DAYS','#b8001e',365],['cdRingH','HRS','#f5c842',24],['cdRingM','MIN','#4adf7a',60],['cdRingS','SEC','#5aabff',60]].map(([id,lbl,col,max])=>`
+                <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                  <svg id="${id}_svg" width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg)">
+                    <circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/>
+                    <circle id="${id}" cx="36" cy="36" r="30" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round"
+                      stroke-dasharray="${(2*Math.PI*30).toFixed(2)}" stroke-dashoffset="${(2*Math.PI*30).toFixed(2)}"
+                      style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1),filter .8s;filter:drop-shadow(0 0 6px ${col}88)"/>
+                    <text id="${id}_num" x="36" y="36" text-anchor="middle" dominant-baseline="central"
+                      font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff"
+                      style="transform:rotate(90deg);transform-origin:36px 36px">--</text>
+                  </svg>
+                  <div style="font-size:8px;color:#3a5a7c;letter-spacing:1.5px">${lbl}</div>
+                </div>`).join('')}
+              </div>
             </div>
           </div>
-          <div id="cdChecklist" style="display:none"></div>
         </div>
-        <!-- Search + Add + Filters in one row -->
+<!-- Search + Add + Filters in one row -->
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <div style="flex:1;min-width:200px;position:relative">
             <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#3a5a7c;font-size:13px">🔍</span>
@@ -4071,36 +4087,52 @@ function getMajorRow(r) {
 const CALL_DAY = new Date('2026-06-15T21:00:00-07:00'); // 9 PM PST June 15 2026
 
 function updateCountdown() {
-  const el = document.getElementById('cdTimer');
-  const ready = document.getElementById('cdReady');
-  const block = document.getElementById('countdownBlock');
-  if (!el) return;
   const now = new Date();
   const diff = CALL_DAY - now;
   if (diff <= 0) {
-    if (block) block.style.display = 'none';
+    const ready = document.getElementById('cdReady');
     if (ready) ready.style.display = 'block';
+    // All rings full
+    ['cdRingD','cdRingH','cdRingM','cdRingS'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.strokeDashoffset = '0';
+    });
     return;
   }
   const days = Math.floor(diff / 86400000);
   const hrs  = Math.floor((diff % 86400000) / 3600000);
   const mins = Math.floor((diff % 3600000) / 60000);
   const secs = Math.floor((diff % 60000) / 1000);
-  el.textContent = `${String(days).padStart(2,'0')}:${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
-  // Checklist
-  const all = getRecruits();
-  const scheduled = all.filter(r => store.callTimes[r.name] || store.callDates[r.name]).length;
-  const guides = all.filter(r => isGuide(r)).length;
-  const assigned = all.filter(r => store.callers[r.name]).length;
-  const cl = document.getElementById('cdChecklist');
-  if (cl) cl.innerHTML = [
-    [scheduled >= all.length, `${scheduled}/${all.length} recruits have a call time set`, '🕐'],
-    [guides >= 40, `${guides} custom call guides built`, '✦'],
-    [assigned >= all.length, `${assigned}/${all.length} recruits assigned to a caller`, '📞'],
-    [Object.keys(store.callers||{}).length > 0, 'Caller assignments saved', '💾'],
-  ].map(([done, label, icon]) =>
-    `<div class="cd-check ${done?'done':''}"><span style="font-size:14px">${icon}</span><span>${label}</span>${done?'<span style="margin-left:auto">✓</span>':''}</div>`
-  ).join('');
+
+  const C = 188.5;
+  const maxes = {cdRingD:365, cdRingH:24, cdRingM:60, cdRingS:60};
+  const vals  = {cdRingD:days, cdRingH:hrs, cdRingM:mins, cdRingS:secs};
+  const cols  = {cdRingD:'#b8001e', cdRingH:'#f5c842', cdRingM:'#4adf7a', cdRingS:'#5aabff'};
+
+  Object.keys(maxes).forEach(id => {
+    const ring = document.getElementById(id);
+    const num  = document.getElementById(id + '_num');
+    if (!ring || !num) return;
+    const pct = vals[id] / maxes[id];
+    const offset = C * (1 - pct);
+    ring.style.strokeDashoffset = offset;
+    // Neon pulse intensity on seconds ring
+    if (id === 'cdRingS') {
+      const glow = `drop-shadow(0 0 ${4 + secs % 2 * 6}px ${cols[id]}cc)`;
+      ring.style.filter = glow;
+    } else {
+      ring.style.filter = `drop-shadow(0 0 5px ${cols[id]}88)`;
+    }
+    // Pulse ring color when ticking
+    if (id === 'cdRingS') {
+      ring.style.stroke = secs % 2 === 0 ? '#7adbff' : '#5aabff';
+    }
+    num.textContent = String(vals[id]).padStart(2,'0');
+  });
+
+  // Also keep hidden timer for checklist
+  const el = document.getElementById('cdTimer');
+  if (el) el.textContent = days+':'+String(hrs).padStart(2,'0')+':'+String(mins).padStart(2,'0')+':'+String(secs).padStart(2,'0');
 }
 
 // ── US Map (Leaflet) ─────────────────────────────────────────────────────────
