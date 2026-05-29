@@ -762,6 +762,19 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
   to{opacity:1;transform:translateX(0) translateZ(0) rotateY(0deg)}
 }
 
+
+/* ── Magnetic tilt ── */
+.wr-card{transform-style:preserve-3d;will-change:transform}
+#welcomeRoster{perspective:1400px}
+
+
+/* ── Expand morph overlay ── */
+#morphOverlay{position:fixed;z-index:8000;pointer-events:none;background:transparent;border-radius:4px;overflow:hidden;transform-origin:top left}
+#morphOverlay.active{pointer-events:all}
+#morphOverlay .mo-inner{height:100%;overflow-y:auto;background:#0a1628;border:1px solid #2a4a7c;border-radius:inherit;opacity:0;transform:scale(.95);transition:opacity .3s .1s,transform .35s .05s cubic-bezier(.34,1.1,.64,1)}
+#morphOverlay.active .mo-inner{opacity:1;transform:scale(1)}
+#morphOverlay .mo-close{position:sticky;top:0;float:right;margin:10px 10px 0 0;width:28px;height:28px;border-radius:50%;background:#0d1e38;border:1px solid #2a4a7c;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1}
+
 </style>
 </head>
 <body>
@@ -1680,7 +1693,10 @@ function renderWelcomeRoster() {
       const hudl2 = store.hudlLinks&&store.hudlLinks[r.name]||r.hudl||'';
       const lastNote = (()=>{const ln=(store.notes[r.name]||'').split('\n').filter(l=>l.trim()).pop()||'';const m=ln.match(/^\[.*?\]\s*\w+:\s*(.*)/);return m?m[1]:ln;})();
       html += `<div class="wr-card${ac}${gc}" style="position:relative;min-height:90px" title="${r.name}"
-        onclick="event.target.closest('.wr-card-back-btn')||wrFlip(event,this,'${nm}')" >
+        onclick="event.target.closest('.wr-card-back-btn')||wrFlip(event,this,'${nm}')"
+        data-caller="${caller}"
+        oncontextmenu="event.preventDefault();morphOpen('${nm}',this)" >
+      <div style="position:absolute;bottom:4px;right:6px;font-size:8px;color:#1e3050;pointer-events:none">right-click → expand</div>
         <div class="wr-card-face">
           <div class="wr-card-name">${hotBadge}${r.name}${campNote}</div>
           <div class="wr-card-meta">
@@ -1706,6 +1722,7 @@ function renderWelcomeRoster() {
   });
 
   el.innerHTML = html || '<div style="padding:40px;color:#1e3050;text-align:center">No recruits yet</div>';
+  addMagneticTilt();
 }
 
 
@@ -3341,6 +3358,14 @@ function renderLeaderboard() {
       </div>
     </div>`;
   }).join('');
+  // Animate stat numbers after render
+  requestAnimationFrame(() => {
+    document.querySelectorAll('#lbRows .lb-stat-n').forEach(el => {
+      const target = parseInt(el.textContent) || 0;
+      el.textContent = '0';
+      countUp(el, target, 700);
+    });
+  });
 }
 
 // ── Weather ───────────────────────────────────────────────────────────────────
@@ -6342,6 +6367,176 @@ function advanceToNext() {
     document.getElementById('advanceBanner').classList.remove('visible');
     selectRecruit(name);
   }
+}
+
+
+// ── Magnetic tilt ─────────────────────────────────────────────────
+function addMagneticTilt() {
+  document.querySelectorAll('.wr-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      if (card.classList.contains('flipped')) return;
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      const col = {OJ:'#f5c842',Leisa:'#ff3a3a',Jerome:'#4a90ff',Kelsey:'#2ecc71'}[card.dataset.caller]||'#5aabff';
+      card.style.transform = `perspective(800px) rotateY(${x*16}deg) rotateX(${-y*12}deg) translateZ(8px) scale(1.02)`;
+      card.style.boxShadow = `${-x*18}px ${-y*14}px 30px rgba(0,0,0,.5), 0 0 18px ${col}44`;
+      card.style.borderColor = col+'88';
+      card.style.transition = 'box-shadow .1s, border-color .1s';
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+      card.style.boxShadow = '';
+      card.style.borderColor = '';
+      card.style.transition = 'transform .4s cubic-bezier(.4,0,.2,1), box-shadow .4s, border-color .4s';
+    });
+  });
+}
+
+// ── Count-up animation ────────────────────────────────────────────
+function countUp(el, target, duration) {
+  if (!el) return;
+  const start = parseInt(el.textContent) || 0;
+  if (start === target) return;
+  const steps = Math.max(1, Math.min(30, Math.abs(target - start)));
+  const interval = duration / steps;
+  let current = start;
+  const dir = target > start ? 1 : -1;
+  const step = Math.ceil(Math.abs(target - start) / steps);
+  const id = setInterval(() => {
+    current = dir > 0 ? Math.min(current + step, target) : Math.max(current - step, target);
+    el.textContent = current;
+    if (current === target) clearInterval(id);
+  }, interval);
+}
+
+
+
+// ── Typewriter for QA section ────────────────────────────────────
+function typewriteEl(el, text, speed) {
+  if (!el || !text) return;
+  el.value = '';
+  let i = 0;
+  const id = setInterval(() => {
+    el.value += text[i++];
+    if (i >= text.length) clearInterval(id);
+  }, speed || 18);
+}
+
+const _origToggleQA = toggleQA;
+function toggleQA(idKey) {
+  _origToggleQA(idKey);
+  const body = document.getElementById('qaBody_' + idKey);
+  if (!body || body.style.display === 'none') return;
+  // Typewrite each textarea that has content
+  setTimeout(() => {
+    body.querySelectorAll('textarea.ep-input').forEach((ta, i) => {
+      const val = ta.value;
+      if (!val) return;
+      setTimeout(() => typewriteEl(ta, val, 14), i * 400);
+    });
+  }, 50);
+}
+
+// ── Expand morph ──────────────────────────────────────────────────
+function morphOpen(nm, cardEl) {
+  const r = cardEl.getBoundingClientRect();
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const targetW = Math.min(820, vw * 0.88);
+  const targetH = Math.min(600, vh * 0.84);
+  const targetLeft = (vw - targetW) / 2;
+  const targetTop = (vh - targetH) / 2;
+
+  let ov = document.getElementById('morphOverlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'morphOverlay';
+    document.body.appendChild(ov);
+  }
+  // Start from card position
+  ov.style.cssText = `position:fixed;z-index:8000;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;border-radius:6px;transition:left .4s,top .4s,width .4s,height .4s,border-radius .4s cubic-bezier(.4,0,.2,1)`;
+  ov.className = '';
+  ov.innerHTML = '';
+
+  // Animate to center
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    ov.style.left = targetLeft + 'px';
+    ov.style.top = targetTop + 'px';
+    ov.style.width = targetW + 'px';
+    ov.style.height = targetH + 'px';
+    ov.style.borderRadius = '12px';
+    ov.classList.add('active');
+
+    const inner = document.createElement('div');
+    inner.className = 'mo-inner';
+    const closeBtn = document.createElement('div');
+    closeBtn.className = 'mo-close';
+    closeBtn.textContent = '×';
+    closeBtn.onclick = morphClose;
+    inner.appendChild(closeBtn);
+
+    // Build profile content
+    const r2 = getRecruits().find(x => x.name === nm);
+    if (r2) {
+      const ph = r2.phone||'';
+      const em = r2.email||'';
+      const caller = store.callers[nm]||'';
+      const callerColor = {OJ:'#f5c842',Leisa:'#ff3a3a',Jerome:'#4a90ff',Kelsey:'#2ecc71'}[caller]||'#607090';
+      const interest = getInterest(r2);
+      const pos = getPos(r2);
+      const ct = store.callTimes[nm]||'';
+      const cd = store.callDates[nm]||'';
+      const hudl = store.hudlLinks&&store.hudlLinks[nm]||r2.hudl||'';
+      const notes = store.notes[nm]||'';
+      const noteLines = notes.split('\n').filter(l=>l.trim()).slice(-5);
+      const camp = store.campNotes&&store.campNotes[nm]||'';
+
+      inner.innerHTML += `
+        <div style="padding:20px 24px">
+          <div style="font-family:'Oswald',sans-serif;font-size:28px;font-weight:700;color:#fff;margin-bottom:6px">${r2.name}</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+            <span style="background:${getPos(r2)==='L'?'#ff3a3a':getPos(r2).includes('OH')?'#f5c842':'#5aabff'}22;color:${getPos(r2)==='L'?'#ff3a3a':getPos(r2).includes('OH')?'#f5c842':'#5aabff'};border:1px solid currentColor;border-radius:3px;padding:2px 8px;font-size:11px;font-weight:700">${pos}</span>
+            ${interest?`<span style="color:#f5c842;font-weight:700;font-size:14px">★ ${interest}</span>`:''}
+            ${caller?`<span style="color:${callerColor};font-weight:700;font-size:13px">📞 ${caller}</span>`:''}
+            ${camp?`<span style="color:#ffd080;font-size:11px">⛺ ${camp}</span>`:''}
+          </div>
+          <div style="color:#7a9acc;font-size:12px;margin-bottom:16px">${r2.club||''}</div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div>
+              <div style="font-size:9px;color:#3a5a7c;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Contact</div>
+              ${ph?`<a href="tel:${ph}" style="display:block;font-size:15px;font-weight:700;color:#5aabff;text-decoration:none;margin-bottom:6px">📞 ${ph}</a>`:''}
+              ${em?`<div style="font-size:12px;color:#7a9acc;margin-bottom:8px">${em}</div>`:''}
+              ${ct||cd?`<div style="padding:8px;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.15);border-radius:5px;font-size:12px;color:#f5c842">🕐 ${cd?fmtDate(cd)+' · ':''}${ct} PST</div>`:''}
+            </div>
+            <div>
+              <div style="font-size:9px;color:#3a5a7c;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Recent Notes</div>
+              ${noteLines.length ? noteLines.map(l=>{const m=l.match(/^\[.*?\]\s*(\w+)?:\s*(.*)/);return `<div style="font-size:11px;color:#c0d8e8;padding:4px 0;border-bottom:1px solid #0f1e38">${m?m[2]:l}</div>`;}).join(''):'<div style="font-size:11px;color:#1e3050">No notes yet</div>'}
+            </div>
+          </div>
+
+          ${hudl?`<a href="${hudl}" target="_blank" style="display:flex;align-items:center;gap:8px;margin-top:16px;padding:10px 14px;background:rgba(90,171,255,.06);border:1px solid rgba(90,171,255,.15);border-radius:6px;color:#5aabff;text-decoration:none;font-size:13px;font-weight:600">🎥 Open Highlight Film</a>`:''}
+
+          <div style="display:flex;gap:8px;margin-top:16px">
+            <button onclick="morphClose();openInRoster('${q2(nm)}')" style="flex:1;padding:10px;background:#172848;border:1px solid #3a5a9c;border-radius:6px;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Open Full Profile</button>
+            <button onclick="morphClose()" style="padding:10px 16px;background:#0a1628;border:1px solid #1e3050;border-radius:6px;color:#3a5a7c;font-size:13px;cursor:pointer">Close</button>
+          </div>
+        </div>`;
+    }
+    ov.appendChild(inner);
+  }));
+}
+
+function morphClose() {
+  const ov = document.getElementById('morphOverlay');
+  if (!ov) return;
+  const inner = ov.querySelector('.mo-inner');
+  if (inner) { inner.style.opacity='0'; inner.style.transform='scale(.95)'; }
+  ov.style.width = '0px';
+  ov.style.height = '0px';
+  ov.style.opacity = '0';
+  ov.style.transition = 'width .35s,height .35s,opacity .3s .1s';
+  setTimeout(() => { ov.className=''; ov.innerHTML=''; ov.style.cssText=''; }, 400);
 }
 
 // ── Font Size Controls ────────────────────────────────────────────
