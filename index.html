@@ -900,8 +900,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
   <div class="content-area" id="tabRoster">
     <div id="welcomeMsg" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0">
       <!-- Countdown strip -->
-      <div id="stripPanel" style="flex-shrink:0;transition:max-height .35s cubic-bezier(.4,0,.2,1),opacity .3s;max-height:300px;opacity:1;overflow:hidden">
-      <div style="flex-shrink:0;background:rgba(0,0,0,.2);border-bottom:1px solid #0f1e38;padding:12px 24px 10px">
+      <div id="stripPanel" style="flex-shrink:0;background:rgba(0,0,0,.2);border-bottom:1px solid #0f1e38;padding:12px 24px 10px;transition:max-height .35s cubic-bezier(.4,0,.2,1),opacity .3s;max-height:400px;overflow:hidden">
 
         <!-- Row 1: Next Call | Rings | Coach Bars — all inline -->
         <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
@@ -1009,7 +1008,6 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
         <!-- hidden compat -->
         <div id="cdTimer" style="display:none"></div>
         <div id="cdChecklist" style="display:none"></div>
-      </div>
       </div><!-- /stripPanel -->
       <!-- Full roster grid by position -->
       <div id="welcomeRoster" style="flex:1;overflow-y:auto;padding:16px 20px;min-height:0"></div>
@@ -1017,7 +1015,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
     <div id="editPanel"></div>
     <div id="panelResizer" title="Drag to resize"></div>
     <div id="guideContainer"></div>
-  </div>
+  
 
   <!-- SCHEDULE TAB CONTENT -->
   <div class="content-area" id="tabSchedule" style="display:none;flex-direction:column">
