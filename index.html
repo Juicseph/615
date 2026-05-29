@@ -857,6 +857,18 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
   <div class="lb-rows" id="lbRows"></div>
 </div>
 
+<!-- Bulk Assign Bar -->
+<div class="bulk-bar" id="bulkBar">
+  <span class="bulk-label">Bulk Assign Caller:</span>
+  <button class="bulk-caller-btn" onclick="bulkAssign('OJ')" style="color:#f5c842;border-color:#7a6a20">OJ</button>
+  <button class="bulk-caller-btn" onclick="bulkAssign('Leisa')" style="color:#ff3a3a;border-color:#7a2020">Leisa</button>
+  <button class="bulk-caller-btn" onclick="bulkAssign('Jerome')" style="color:#4a90ff;border-color:#204a7a">Jerome</button>
+  <button class="bulk-caller-btn" onclick="bulkAssign('Kelsey')" style="color:#2ecc71;border-color:#1a6a3a">Kelsey</button>
+  <span id="bulkCount" class="bulk-count">0 selected</span>
+  <button onclick="bulkSelectAll()" style="margin-left:auto;padding:3px 10px;background:#0a1628;border:1px solid #1e3560;border-radius:4px;color:#7a9acc;font-size:10px;cursor:pointer;font-family:inherit">Select All</button>
+  <button onclick="toggleBulkMode()" style="padding:3px 10px;background:#0a1628;border:1px solid #3a5070;border-radius:4px;color:#5a7090;font-size:10px;cursor:pointer;font-family:inherit">Cancel</button>
+</div>
+
 <div class="main">
   <!-- ROSTER TAB CONTENT -->
   <div class="content-area" id="tabRoster">
@@ -869,43 +881,43 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
           <div style="font-family:'Oswald',sans-serif;font-size:9px;color:#b8001e;letter-spacing:2px;margin-bottom:5px">JUNE 15 · 9PM PST</div>
           <div style="display:flex;gap:8px" id="ringClocks">
             <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-              <svg width="60" height="60" viewBox="0 0 72 72" style="transform:rotate(-90deg)"><circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/><circle id="cdRingD" cx="36" cy="36" r="30" fill="none" stroke="#b8001e" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #b8001e88)"/><text id="cdRingD_num" x="36" y="36" text-anchor="middle" dominant-baseline="central" font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff" style="transform:rotate(90deg);transform-origin:36px 36px">--</text></svg>
+              <svg width="54" height="54" viewBox="0 0 72 72" style="transform:rotate(-90deg)"><circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/><circle id="cdRingD" cx="36" cy="36" r="30" fill="none" stroke="#b8001e" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #b8001e88)"/><text id="cdRingD_num" x="36" y="36" text-anchor="middle" dominant-baseline="central" font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff" style="transform:rotate(90deg);transform-origin:36px 36px">--</text></svg>
               <div style="font-size:7px;color:#3a5a7c;letter-spacing:1.5px">DAYS</div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-              <svg width="60" height="60" viewBox="0 0 72 72" style="transform:rotate(-90deg)"><circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/><circle id="cdRingH" cx="36" cy="36" r="30" fill="none" stroke="#f5c842" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #f5c84288)"/><text id="cdRingH_num" x="36" y="36" text-anchor="middle" dominant-baseline="central" font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff" style="transform:rotate(90deg);transform-origin:36px 36px">--</text></svg>
+              <svg width="54" height="54" viewBox="0 0 72 72" style="transform:rotate(-90deg)"><circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/><circle id="cdRingH" cx="36" cy="36" r="30" fill="none" stroke="#f5c842" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #f5c84288)"/><text id="cdRingH_num" x="36" y="36" text-anchor="middle" dominant-baseline="central" font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff" style="transform:rotate(90deg);transform-origin:36px 36px">--</text></svg>
               <div style="font-size:7px;color:#3a5a7c;letter-spacing:1.5px">HRS</div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-              <svg width="60" height="60" viewBox="0 0 72 72" style="transform:rotate(-90deg)"><circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/><circle id="cdRingM" cx="36" cy="36" r="30" fill="none" stroke="#4adf7a" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #4adf7a88)"/><text id="cdRingM_num" x="36" y="36" text-anchor="middle" dominant-baseline="central" font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff" style="transform:rotate(90deg);transform-origin:36px 36px">--</text></svg>
+              <svg width="54" height="54" viewBox="0 0 72 72" style="transform:rotate(-90deg)"><circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/><circle id="cdRingM" cx="36" cy="36" r="30" fill="none" stroke="#4adf7a" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #4adf7a88)"/><text id="cdRingM_num" x="36" y="36" text-anchor="middle" dominant-baseline="central" font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff" style="transform:rotate(90deg);transform-origin:36px 36px">--</text></svg>
               <div style="font-size:7px;color:#3a5a7c;letter-spacing:1.5px">MIN</div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-              <svg width="60" height="60" viewBox="0 0 72 72" style="transform:rotate(-90deg)"><circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/><circle id="cdRingS" cx="36" cy="36" r="30" fill="none" stroke="#5aabff" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #5aabff88)"/><text id="cdRingS_num" x="36" y="36" text-anchor="middle" dominant-baseline="central" font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff" style="transform:rotate(90deg);transform-origin:36px 36px">--</text></svg>
+              <svg width="54" height="54" viewBox="0 0 72 72" style="transform:rotate(-90deg)"><circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/><circle id="cdRingS" cx="36" cy="36" r="30" fill="none" stroke="#5aabff" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #5aabff88)"/><text id="cdRingS_num" x="36" y="36" text-anchor="middle" dominant-baseline="central" font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff" style="transform:rotate(90deg);transform-origin:36px 36px">--</text></svg>
               <div style="font-size:7px;color:#3a5a7c;letter-spacing:1.5px">SEC</div>
             </div>
           </div>
         </div>
 
-        <!-- Row 1b: Next Call + Coach Bars -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:10px">
+        <!-- Row 1b: Next Call + Coach Bars inline -->
+        <div style="display:flex;gap:12px;margin-bottom:8px">
 
           <!-- Next call spotlight -->
-          <div id="nextCallSpot" style="background:#070f1e;border:1px solid #1a2e50;border-radius:6px;padding:10px 14px;display:flex;align-items:center;gap:12px">
+          <div id="nextCallSpot" style="background:#070f1e;border:1px solid #1a2e50;border-radius:6px;padding:7px 12px;display:flex;align-items:center;gap:10px;flex:1.2;min-width:0">
             <div style="font-family:'Oswald',sans-serif;font-size:8px;color:#3a5a7c;letter-spacing:1.5px;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap">▶ UP NEXT</div>
             <div style="flex:1;min-width:0">
-              <div id="ncName" style="font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+              <div id="ncName" style="font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
               <div id="ncDetail" style="font-size:10px;color:#5a8ab0;margin-top:2px">No calls scheduled</div>
             </div>
             <div style="text-align:center;flex-shrink:0">
-              <div id="ncTimer" style="font-family:'Oswald',monospace;font-size:24px;font-weight:700;color:#f5c842;letter-spacing:2px;line-height:1">--:--</div>
+              <div id="ncTimer" style="font-family:'Oswald',monospace;font-size:20px;font-weight:700;color:#f5c842;letter-spacing:1px;line-height:1">--:--</div>
               <div style="font-size:7px;color:#3a5a7c;letter-spacing:1px;margin-top:2px">TO CALL</div>
             </div>
           </div>
 
           <!-- Coach progress bars -->
-          <div id="coachBarsPanel" style="background:#070f1e;border:1px solid #1a2e50;border-radius:6px;padding:10px 14px">
-            <div style="font-size:8px;color:#3a5a7c;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">Call Progress</div>
+          <div id="coachBarsPanel" style="background:#070f1e;border:1px solid #1a2e50;border-radius:6px;padding:7px 12px;flex:1;min-width:0">
+            <div style="font-size:7px;color:#3a5a7c;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">Call Progress</div>
             <div id="coachBarsInner">
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
                 <div style="font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:#f5c842;min-width:48px">OJ</div>
