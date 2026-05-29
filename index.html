@@ -869,19 +869,55 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
             <div style="text-align:center">
               <div style="font-family:'Oswald',sans-serif;font-size:10px;color:#b8001e;letter-spacing:2px;margin-bottom:6px">JUNE 15 · 9PM PST</div>
               <div style="display:flex;gap:10px" id="ringClocks">
-                ${[['cdRingD','DAYS','#b8001e',365],['cdRingH','HRS','#f5c842',24],['cdRingM','MIN','#4adf7a',60],['cdRingS','SEC','#5aabff',60]].map(([id,lbl,col,max])=>`
                 <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-                  <svg id="${id}_svg" width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg)">
+                  <svg id="cdRingD_svg" width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg)">
                     <circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/>
-                    <circle id="${id}" cx="36" cy="36" r="30" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round"
-                      stroke-dasharray="${(2*Math.PI*30).toFixed(2)}" stroke-dashoffset="${(2*Math.PI*30).toFixed(2)}"
-                      style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1),filter .8s;filter:drop-shadow(0 0 6px ${col}88)"/>
-                    <text id="${id}_num" x="36" y="36" text-anchor="middle" dominant-baseline="central"
+                    <circle id="cdRingD" cx="36" cy="36" r="30" fill="none" stroke="#b8001e" stroke-width="5" stroke-linecap="round"
+                      stroke-dasharray="188.5" stroke-dashoffset="188.5"
+                      style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #b8001e88)"/>
+                    <text id="cdRingD_num" x="36" y="36" text-anchor="middle" dominant-baseline="central"
                       font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff"
                       style="transform:rotate(90deg);transform-origin:36px 36px">--</text>
                   </svg>
-                  <div style="font-size:8px;color:#3a5a7c;letter-spacing:1.5px">${lbl}</div>
-                </div>`).join('')}
+                  <div style="font-size:8px;color:#3a5a7c;letter-spacing:1.5px">DAYS</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                  <svg id="cdRingH_svg" width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg)">
+                    <circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/>
+                    <circle id="cdRingH" cx="36" cy="36" r="30" fill="none" stroke="#f5c842" stroke-width="5" stroke-linecap="round"
+                      stroke-dasharray="188.5" stroke-dashoffset="188.5"
+                      style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #f5c84288)"/>
+                    <text id="cdRingH_num" x="36" y="36" text-anchor="middle" dominant-baseline="central"
+                      font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff"
+                      style="transform:rotate(90deg);transform-origin:36px 36px">--</text>
+                  </svg>
+                  <div style="font-size:8px;color:#3a5a7c;letter-spacing:1.5px">HRS</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                  <svg id="cdRingM_svg" width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg)">
+                    <circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/>
+                    <circle id="cdRingM" cx="36" cy="36" r="30" fill="none" stroke="#4adf7a" stroke-width="5" stroke-linecap="round"
+                      stroke-dasharray="188.5" stroke-dashoffset="188.5"
+                      style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #4adf7a88)"/>
+                    <text id="cdRingM_num" x="36" y="36" text-anchor="middle" dominant-baseline="central"
+                      font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff"
+                      style="transform:rotate(90deg);transform-origin:36px 36px">--</text>
+                  </svg>
+                  <div style="font-size:8px;color:#3a5a7c;letter-spacing:1.5px">MIN</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                  <svg id="cdRingS_svg" width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg)">
+                    <circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/>
+                    <circle id="cdRingS" cx="36" cy="36" r="30" fill="none" stroke="#5aabff" stroke-width="5" stroke-linecap="round"
+                      stroke-dasharray="188.5" stroke-dashoffset="188.5"
+                      style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #5aabff88)"/>
+                    <text id="cdRingS_num" x="36" y="36" text-anchor="middle" dominant-baseline="central"
+                      font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff"
+                      style="transform:rotate(90deg);transform-origin:36px 36px">--</text>
+                  </svg>
+                  <div style="font-size:8px;color:#3a5a7c;letter-spacing:1.5px">SEC</div>
+                </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1553,14 +1589,19 @@ function renderTextSchedule() {
   const totalSent   = withText.filter(r => store.textSent&&store.textSent[r.name]).length;
   const totalUnsent = withText.length - totalSent;
 
-  let html = `<h2>&#128172; Text Schedule</h2>
-  <div class="coach-filter-bar">
-    <button class="text-coach-btn sched-coach-btn${textCoachFilter==='all'?' active':''}" onclick="setTextCoach('all',this)">All</button>
-    ${['OJ','Leisa','Jerome','Kelsey'].map(co=>`<button class="text-coach-btn sched-coach-btn${textCoachFilter===co?' active':''}" onclick="setTextCoach('${co}',this)">${co}</button>`).join('')}
-  </div>
-  <div class="ts-sub">${withText.length} text${withText.length!==1?'s':''} scheduled &nbsp;&middot;&nbsp; ${noText.length} not scheduled${textCoachFilter!=='all'?' · '+textCoachFilter+' only':''}</div>`;
+  let html = "";
+  html += "<h2>&#128172; Text Schedule</h2>";
+  html += '<div class="coach-filter-bar">';
+  ["All","OJ","Leisa","Jerome","Kelsey"].forEach(function(co) {
+    const val = co === "All" ? "all" : co;
+    const act = textCoachFilter === val ? " active" : "";
+    const fn = co === "All" ? "setTextCoach('all',this)" : "setTextCoach('" + co + "',this)";
+    html += '<button class="text-coach-btn sched-coach-btn' + act + '" onclick="' + fn + '">' + co + '</button>';
+  });
+  html += "</div>";
+  html += "<div class='ts-sub'>" + withText.length + " text" + (withText.length!==1?"s":"") + " scheduled &middot; " + noText.length + " not scheduled" + (textCoachFilter!=="all"?" &middot; "+textCoachFilter+" only":"") + "</div>";
 
-  if (withText.length > 0) {
+    if (withText.length > 0) {
     html += `<div class="ts-summary">
       <div class="ts-stat"><div class="ts-stat-n" style="color:#5aabff">${withText.length}</div><div class="ts-stat-l">Scheduled</div></div>
       <div class="ts-stat"><div class="ts-stat-n" style="color:#4adf7a">${totalSent}</div><div class="ts-stat-l">Sent</div></div>
