@@ -887,6 +887,56 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
           </div>
         </div>
 
+        <!-- Row 1b: Next Call + Coach Bars -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:10px">
+
+          <!-- Next call spotlight -->
+          <div id="nextCallSpot" style="background:#070f1e;border:1px solid #1a2e50;border-radius:6px;padding:10px 14px;display:flex;align-items:center;gap:12px">
+            <div style="font-family:'Oswald',sans-serif;font-size:8px;color:#3a5a7c;letter-spacing:1.5px;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap">▶ UP NEXT</div>
+            <div style="flex:1;min-width:0">
+              <div id="ncName" style="font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+              <div id="ncDetail" style="font-size:10px;color:#5a8ab0;margin-top:2px">No calls scheduled</div>
+            </div>
+            <div style="text-align:center;flex-shrink:0">
+              <div id="ncTimer" style="font-family:'Oswald',monospace;font-size:24px;font-weight:700;color:#f5c842;letter-spacing:2px;line-height:1">--:--</div>
+              <div style="font-size:7px;color:#3a5a7c;letter-spacing:1px;margin-top:2px">TO CALL</div>
+            </div>
+          </div>
+
+          <!-- Coach progress bars -->
+          <div id="coachBarsPanel" style="background:#070f1e;border:1px solid #1a2e50;border-radius:6px;padding:10px 14px">
+            <div style="font-size:8px;color:#3a5a7c;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">Call Progress</div>
+            <div id="coachBarsInner">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <div style="font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:#f5c842;min-width:48px">OJ</div>
+                <div style="flex:1;height:5px;background:#0d1e38;border-radius:3px;overflow:hidden">
+                  <div id="cbar_OJ" style="height:100%;width:0%;background:#f5c842;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)"></div>
+                </div>
+                <div id="cnum_OJ" style="font-size:10px;color:#3a5a7c;min-width:40px;text-align:right">0/0</div>
+              </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <div style="font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:#ff3a3a;min-width:48px">Leisa</div>
+                <div style="flex:1;height:5px;background:#0d1e38;border-radius:3px;overflow:hidden">
+                  <div id="cbar_Leisa" style="height:100%;width:0%;background:#ff3a3a;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)"></div>
+                </div>
+                <div id="cnum_Leisa" style="font-size:10px;color:#3a5a7c;min-width:40px;text-align:right">0/0</div>
+              </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <div style="font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:#4a90ff;min-width:48px">Jerome</div>
+                <div style="flex:1;height:5px;background:#0d1e38;border-radius:3px;overflow:hidden">
+                  <div id="cbar_Jerome" style="height:100%;width:0%;background:#4a90ff;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)"></div>
+                </div>
+                <div id="cnum_Jerome" style="font-size:10px;color:#3a5a7c;min-width:40px;text-align:right">0/0</div>
+              </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <div style="font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:#2ecc71;min-width:48px">Kelsey</div>
+                <div style="flex:1;height:5px;background:#0d1e38;border-radius:3px;overflow:hidden">
+                  <div id="cbar_Kelsey" style="height:100%;width:0%;background:#2ecc71;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)"></div>
+                </div>
+                <div id="cnum_Kelsey" style="font-size:10px;color:#3a5a7c;min-width:40px;text-align:right">0/0</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
         <!-- Row 2: Search + Add + Bulk -->
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
           <div style="position:relative;flex:1">
@@ -3399,6 +3449,7 @@ function renderLeaderboard() {
       </div>
     </div>`;
   }).join('');
+  updateStripPanels();
   // Animate stat numbers after render
   requestAnimationFrame(() => {
     document.querySelectorAll('#lbRows .lb-stat-n').forEach(el => {
@@ -6600,6 +6651,110 @@ function morphClose() {
   setTimeout(() => { ov.className=''; ov.innerHTML=''; ov.style.cssText=''; }, 400);
 }
 
+
+// ── Next Call Spotlight ───────────────────────────────────────────
+let _ncInterval = null;
+
+function updateNextCallSpot() {
+  const nameEl  = document.getElementById('ncName');
+  const detEl   = document.getElementById('ncDetail');
+  const timerEl = document.getElementById('ncTimer');
+  if (!nameEl) return;
+
+  // Find the next unfinished scheduled recruit (has callTime, no Connected note)
+  const now = new Date();
+  function parseCallTime(t) {
+    if (!t) return null;
+    const m = t.match(/(\d{1,2}):?(\d{2})?\s*(am|pm|a|p)?/i);
+    if (!m) return null;
+    let h = parseInt(m[1]), min = parseInt(m[2]||'0');
+    const ap = (m[3]||'').toLowerCase();
+    if (ap.startsWith('p') && h !== 12) h += 12;
+    if (ap.startsWith('a') && h === 12) h = 0;
+    const d = new Date(CALL_DAY);
+    d.setHours(h, min, 0, 0);
+    return d;
+  }
+
+  const candidates = getRecruits().filter(r => {
+    const notes = store.notes[r.name]||'';
+    const done = notes.includes('✓ Connected') || notes.includes('✗ No Answer') || notes.includes('✉ Left Voicemail');
+    return store.callTimes[r.name] && !done;
+  }).sort((a,b) => {
+    const ta = parseCallTime(store.callTimes[a.name]);
+    const tb = parseCallTime(store.callTimes[b.name]);
+    return (ta||new Date(9999,0)) - (tb||new Date(9999,0));
+  });
+
+  if (!candidates.length) {
+    nameEl.textContent = 'All calls done!';
+    detEl.textContent = 'Great work today';
+    timerEl.textContent = '✓';
+    timerEl.style.color = '#4adf7a';
+    return;
+  }
+
+  const r = candidates[0];
+  const caller = store.callers[r.name]||'';
+  const callerCol = {OJ:'#f5c842',Leisa:'#ff3a3a',Jerome:'#4a90ff',Kelsey:'#2ecc71'}[caller]||'#5a8ab0';
+  const ct = store.callTimes[r.name]||'';
+  const callTime = parseCallTime(ct);
+  const interest = getInterest(r);
+
+  nameEl.textContent = r.name;
+  nameEl.onclick = () => openInRoster(q2(r.name));
+  nameEl.style.cursor = 'pointer';
+  detEl.innerHTML = getPos(r) + (interest ? ' · ★'+interest : '') + (caller ? ' · <span style="color:'+callerCol+';font-weight:700">'+caller+'</span>' : '') + (ct ? ' · '+ct+' PST' : '');
+
+  if (callTime) {
+    const diff = callTime - now;
+    if (diff > 0) {
+      const h = Math.floor(diff/3600000);
+      const m = Math.floor((diff%3600000)/60000);
+      const s = Math.floor((diff%60000)/1000);
+      timerEl.textContent = h > 0 ? h+'h '+String(m).padStart(2,'0')+'m' : String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+      timerEl.style.color = diff < 300000 ? '#ff4060' : '#f5c842';
+    } else {
+      timerEl.textContent = 'NOW';
+      timerEl.style.color = '#ff4060';
+    }
+  } else {
+    timerEl.textContent = ct||'—';
+    timerEl.style.color = '#5a8ab0';
+  }
+}
+
+// ── Coach Progress Bars ───────────────────────────────────────────
+function updateCoachBars() {
+  const COACH_COLS = {OJ:'#f5c842',Leisa:'#ff3a3a',Jerome:'#4a90ff',Kelsey:'#2ecc71'};
+  const counts = {};
+  COACHES.forEach(coach => counts[coach] = {assigned:0,done:0});
+  getRecruits().forEach(r => {
+    const caller = store.callers[r.name];
+    if (!caller || !counts[caller]) return;
+    counts[caller].assigned++;
+    const notes = store.notes[r.name]||'';
+    if (notes.includes('✓ Connected')||notes.includes('✗ No Answer')||notes.includes('✉ Left Voicemail')) {
+      counts[caller].done++;
+    }
+  });
+  COACHES.forEach(coach => {
+    const bar = document.getElementById('cbar_'+coach);
+    const num = document.getElementById('cnum_'+coach);
+    if (!bar || !num) return;
+    const d = counts[coach];
+    const pct = d.assigned > 0 ? (d.done/d.assigned*100).toFixed(0) : 0;
+    bar.style.width = pct+'%';
+    num.textContent = d.done+'/'+d.assigned;
+    num.style.color = d.done === d.assigned && d.assigned > 0 ? '#4adf7a' : '#3a5a7c';
+  });
+}
+
+function updateStripPanels() {
+  updateNextCallSpot();
+  updateCoachBars();
+}
+
 // ── Font Size Controls ────────────────────────────────────────────
 let _fsLevel = 0;
 try { _fsLevel = parseInt(localStorage.getItem('fsLevel')||'0'); } catch(e){}
@@ -6632,10 +6787,14 @@ function applyFontSize() {
 function adjustFontSize(dir) {
   _fsLevel = Math.max(-2, Math.min(5, _fsLevel + dir));
   applyFontSize();
+setInterval(updateNextCallSpot, 1000);
+setInterval(updateCoachBars, 5000);
 }
 
 // Apply saved font size on load
 applyFontSize();
+setInterval(updateNextCallSpot, 1000);
+setInterval(updateCoachBars, 5000);
 </script>
 
 <!-- SYNC MODAL -->
