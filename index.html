@@ -733,11 +733,10 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 
 
 /* ── Card Flip ── */
-.wr-card{transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);cursor:pointer}
-.wr-card.flipped{transform:rotateY(180deg)}
+.wr-card{transform-style:preserve-3d;cursor:pointer;transition:transform .5s ease,box-shadow .3s,border-color .3s}
+.wr-card.flipped{transform:rotateY(180deg)!important;transition:transform .55s cubic-bezier(.25,.46,.45,.94)!important}
 .wr-card-face{backface-visibility:hidden;-webkit-backface-visibility:hidden}
-.wr-card-back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
-  transform:rotateY(180deg);border-radius:4px;padding:10px 12px;
+.wr-card-back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:rotateY(180deg);border-radius:4px;padding:10px 12px;
   background:#0d2e40;border:1px solid #2a6a8a;display:flex;flex-direction:column;justify-content:space-between}
 .wr-card-back-name{font-size:11px;font-weight:700;color:#5aabff;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wr-card-back-row{font-size:11px;color:#ffffff;line-height:1.5}
@@ -1729,9 +1728,13 @@ function renderWelcomeRoster() {
 function wrFlip(e, card, nm) {
   e.stopPropagation();
   const isFlipped = card.classList.contains('flipped');
-  // Close all other flipped cards first
+  // Instantly snap other flipped cards back (no transition delay)
   document.querySelectorAll('.wr-card.flipped').forEach(el => {
-    if (el !== card) el.classList.remove('flipped');
+    if (el !== card) {
+      el.style.transition = 'none';
+      el.classList.remove('flipped');
+      requestAnimationFrame(() => { el.style.transition = ''; });
+    }
   });
   if (isFlipped) {
     card.classList.remove('flipped');
@@ -6374,7 +6377,10 @@ function advanceToNext() {
 function addMagneticTilt() {
   document.querySelectorAll('.wr-card').forEach(card => {
     card.addEventListener('mousemove', e => {
-      if (card.classList.contains('flipped')) return;
+      if (card.classList.contains('flipped')) {
+        card.style.transform = 'rotateY(180deg)';
+        return;
+      }
       const r = card.getBoundingClientRect();
       const x = (e.clientX - r.left) / r.width - 0.5;
       const y = (e.clientY - r.top) / r.height - 0.5;
@@ -6385,10 +6391,11 @@ function addMagneticTilt() {
       card.style.transition = 'box-shadow .1s, border-color .1s';
     });
     card.addEventListener('mouseleave', () => {
+      if (card.classList.contains('flipped')) return;
       card.style.transform = '';
       card.style.boxShadow = '';
       card.style.borderColor = '';
-      card.style.transition = 'transform .4s cubic-bezier(.4,0,.2,1), box-shadow .4s, border-color .4s';
+      card.style.transition = 'transform .5s ease, box-shadow .4s, border-color .4s';
     });
   });
 }
@@ -6471,8 +6478,8 @@ function morphOpen(nm, cardEl) {
     inner.className = 'mo-inner';
     const closeBtn = document.createElement('div');
     closeBtn.className = 'mo-close';
-    closeBtn.textContent = '×';
-    closeBtn.onclick = morphClose;
+    closeBtn.innerHTML = '&times;';
+    closeBtn.setAttribute('onclick', 'morphClose()');
     inner.appendChild(closeBtn);
 
     // Build profile content
