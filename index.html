@@ -157,16 +157,15 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .main.rp-fullwidth{grid-template-columns:1fr}
 .main.rp-fullwidth .sidebar{display:none}
 .sidebar{background:var(--sidebar-bg);border-right:1px solid var(--border-primary);display:flex;flex-direction:column;overflow:hidden;min-height:0;position:relative;z-index:10}
-.content-area{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0;justify-content:flex-start;align-items:stretch}
+.content-area{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0;justify-content:flex-start;align-items:stretch;height:100%}
 /* tabRoster: column by default (welcome screen), row when recruit open */
 #tabRoster{display:flex;flex-direction:column;flex:1;min-height:0}
 #tabRoster.recruit-open{flex-direction:row}
-#tabRoster.recruit-open #welcomeMsg{display:none!important}
-#tabRoster.recruit-open #editPanel{display:flex!important}
-#tabRoster.recruit-open #guideContainer{display:flex!important}
+#tabRoster .welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#tabRoster.recruit-open .welcome{display:none}
 
-
-
+#editPanel{flex:0 0 45%;max-width:600px;min-width:300px;display:none;flex-direction:column;overflow-y:auto;background:var(--bg-card);border-right:1px solid var(--border-primary);height:100%}
+#editPanel.visible{display:flex}
 #guideContainer{display:none;flex:1;min-width:0;height:100%}
 #guideContainer.visible{display:block}
 
@@ -643,7 +642,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 
 /* ── 3-COLUMN RECRUIT VIEW ── */
 
-#editPanel{flex:0 0 45%;max-width:620px;min-width:280px;display:none;flex-direction:column;overflow-y:auto;height:100%;background:#07111f;border-right:1px solid #192e50}
+#editPanel{display:none;flex-direction:column;overflow-y:auto;height:100%;background:#07111f;border-right:1px solid #192e50}
 #editPanel.visible{display:flex}
 .ep-header{padding:16px 18px 12px;border-bottom:1px solid var(--border-primary);flex-shrink:0;background:var(--bg-panel);position:sticky;top:0;z-index:10}
 .ep-name{font-family:"Oswald",sans-serif;font-size:22px;font-weight:700;color:var(--text-primary);line-height:1.1;margin-bottom:2px}
@@ -808,6 +807,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 </style>
 </head>
 <body>
+
 <header>
   <div class="logo">FRESNO<br>STATE</div>
   <div class="hdr-divider"></div>
@@ -942,7 +942,39 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
         </div>
           </div>
 
+          <!-- Coach progress bars -->
+          <div id="coachBarsPanel" style="background:#070f1e;border:1px solid #1a2e50;border-radius:6px;padding:7px 12px;flex:1;min-width:0">
+            <div style="font-size:7px;color:#3a5a7c;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">Call Progress</div>
+            <div id="coachBarsInner">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <div style="font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:#f5c842;min-width:48px">OJ</div>
+                <div style="flex:1;height:5px;background:#0d1e38;border-radius:3px;overflow:hidden">
+                  <div id="cbar_OJ" style="height:100%;width:0%;background:#f5c842;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)"></div>
+                </div>
+                <div id="cnum_OJ" style="font-size:10px;color:#3a5a7c;min-width:40px;text-align:right">0/0</div>
+              </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <div style="font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:#ff3a3a;min-width:48px">Leisa</div>
+                <div style="flex:1;height:5px;background:#0d1e38;border-radius:3px;overflow:hidden">
+                  <div id="cbar_Leisa" style="height:100%;width:0%;background:#ff3a3a;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)"></div>
+                </div>
+                <div id="cnum_Leisa" style="font-size:10px;color:#3a5a7c;min-width:40px;text-align:right">0/0</div>
+              </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <div style="font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:#4a90ff;min-width:48px">Jerome</div>
+                <div style="flex:1;height:5px;background:#0d1e38;border-radius:3px;overflow:hidden">
+                  <div id="cbar_Jerome" style="height:100%;width:0%;background:#4a90ff;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)"></div>
+                </div>
+                <div id="cnum_Jerome" style="font-size:10px;color:#3a5a7c;min-width:40px;text-align:right">0/0</div>
+              </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <div style="font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:#2ecc71;min-width:48px">Kelsey</div>
+                <div style="flex:1;height:5px;background:#0d1e38;border-radius:3px;overflow:hidden">
+                  <div id="cbar_Kelsey" style="height:100%;width:0%;background:#2ecc71;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)"></div>
+                </div>
+                <div id="cnum_Kelsey" style="font-size:10px;color:#3a5a7c;min-width:40px;text-align:right">0/0</div>
+              </div>
+            </div>
+          </div>
 
+        </div>
         </div>
 
         <!-- Row 2: Search + Add + Bulk -->
@@ -1243,8 +1275,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 <!-- Confetti -->
 <canvas id="confettiCanvas"></canvas>
 <div class="confetti-name-overlay" id="confettiOverlay">
-  <div class="confe
-tti-bigname" id="confettiBigName"></div>
+  <div class="confetti-bigname" id="confettiBigName"></div>
   <div class="confetti-subtext">&#127881; COMMITTED TO FRESNO STATE &#127881;</div>
   <button class="confetti-close" onclick="stopConfetti()">&#10005; Continue</button>
 </div>
@@ -1597,7 +1628,6 @@ function switchTab(tab, btn) {
   if (tab==='wall')        renderWall();
   if (tab==='rosterplan')  renderRosterPlan();
   if (tab!=='wall')        stopGalaxy();
-  if (tab!=='wall')        stopGalaxy();
 }
 
 // ── Text Schedule View ────────────────────────────────────────────────────────
@@ -1841,7 +1871,7 @@ function wrFlip(e, card, nm) {
   }
 }
 function renderList() {
-  const q = (document.getElementById('searchInput')||{value:''}).value.toLowerCase();
+  const q = document.getElementById('searchInput').value.toLowerCase();
   const groups = {};
   Object.keys(POS_LABELS).forEach(k => groups[k] = []);
 
@@ -1954,11 +1984,12 @@ function renderList() {
     });
   }
 
+  if (!activeRecruit) renderWelcomeRoster();
   const _rl = document.getElementById('recruitList');
   if (_rl) _rl.innerHTML = html || '<div style="padding:20px;color:#1e3050;text-align:center;font-size:13px">No recruits match</div>';
   updateCounts();
   initDragRank();
-  if (!activeRecruit) renderWelcomeRoster();
+  renderWelcomeRoster();
 }
 
 // ── Select recruit → show PDF ─────────────────────────────────────────────────
@@ -2391,23 +2422,94 @@ function setCallDate(name, val) {
 // ─────────────────────────────────────────────────────────────────
 function closeGuide() {
   activeRecruit = null;
-  const wm = document.getElementById('welcomeMsg');
+  document.getElementById('tabRoster').classList.remove('recruit-open');
+  // Clear edit panel
   const ep = document.getElementById('editPanel');
+  if (ep) { ep.classList.remove('visible'); ep.innerHTML = ''; ep.style.display = 'none'; }
+  // Clear guide
   const gc = document.getElementById('guideContainer');
-  const pr = document.getElementById('panelResizer');
-  const tr = document.getElementById('tabRoster');
-  if (wm) { wm.style.display = ''; }
-  if (ep) { ep.classList.remove('visible'); ep.style.display = 'none'; ep.innerHTML = ''; }
-  if (gc) { gc.classList.remove('visible'); gc.style.display = 'none'; gc.innerHTML = ''; }
-  if (pr) { pr.style.display = 'none'; }
-  if (tr) { tr.classList.remove('recruit-open'); tr.style.flexDirection = ''; }
+  if (gc) { gc.classList.remove('visible'); gc.innerHTML = ''; gc.style.display = 'none'; }
+  // Show welcome only if on roster tab
+  if (activeTab === 'roster') {
+    const wm = document.getElementById('welcomeMsg');
+    if (wm) { wm.style.display = 'flex'; wm.classList.remove('hidden'); }
+  }
+  renderList();
   const wt = document.getElementById('whisperToggle');
   if (wt) wt.style.display = 'none';
-  if (activeTab === 'roster') renderWelcomeRoster();
-  renderList();
+  const wp = document.getElementById('whisperPanel');
+  if (wp && wp.classList.contains('open')) toggleWhisper();
+  if (typeof stopHeartbeat === 'function') stopHeartbeat();
 }
 
+function selectRecruit(name) {
+  activeRecruit = name;
 
+  // Close any flipped cards
+  document.querySelectorAll('.wr-card.flipped').forEach(el => el.classList.remove('flipped'));
+  // Switch tabRoster to row layout
+  document.getElementById('tabRoster').classList.add('recruit-open');
+
+  // Hide welcome
+  const wm = document.getElementById('welcomeMsg');
+  if (wm) { wm.style.display = 'none'; wm.classList.add('hidden'); }
+
+  renderList();
+  if (activeTab === 'texts') renderTextSchedule();
+
+  // Build edit panel
+  buildEditPanel(name);
+
+  // Load PDF
+  const r = getRecruits().find(x => x.name === name);
+  if (!r) return;
+  const url = getBlobURL(name);
+  const gc = document.getElementById('guideContainer');
+  gc.style.display = 'block';
+  gc.classList.add('visible');
+  gc.style.height = '100%';
+  gc.innerHTML = url
+    ? `<iframe src="${url}" style="width:100%;height:100%;border:none;display:block"></iframe>`
+    : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#1e3050;flex-direction:column;gap:10px"><div style="font-size:14px">No PDF guide yet</div></div>`;
+
+  const wt = document.getElementById('whisperToggle');
+  if (wt) wt.style.display = 'flex';
+}
+
+// ── Schedule view ─────────────────────────────────────────────────────────────
+let scheduleCoachFilter = 'all';
+let textCoachFilter = 'all';
+
+function openInRoster(name) {
+  const rBtn = document.querySelector('.tab-btn');
+  switchTab('roster', rBtn);
+  setTimeout(() => selectRecruit(name), 80);
+}
+function filterByCaller(coach) {
+  const rosterBtn = document.querySelector('.tab-btn');
+  if (rosterBtn) switchTab('roster', rosterBtn);
+  activeFilter = 'caller_' + coach;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  renderList();
+  updateCounts();
+  // Show active filter badge on lb-panel
+  let badge = document.getElementById('lbFilterBadge');
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'lbFilterBadge';
+    badge.style.cssText = 'margin-left:12px;padding:2px 10px;background:#172848;border:1px solid #b8001e;border-radius:10px;color:#ffffff;font-size:10px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0';
+    badge.onclick = () => { activeFilter='all'; document.getElementById('filterAll')&&document.getElementById('filterAll').classList.add('active'); renderList();updateCounts(); badge.remove(); };
+    document.getElementById('lbPanel').appendChild(badge);
+  }
+  badge.innerHTML = '&#128222; Showing: ' + coach + ' &nbsp;<span style="color:#ff8080;font-size:11px">✕ clear</span>';
+}
+
+function setScheduleCoach(coach, btn) {
+  scheduleCoachFilter = coach;
+  document.querySelectorAll('.sched-coach-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSchedule();
+}
 
 function setTextCoach(coach, btn) {
   textCoachFilter = coach;
@@ -2416,8 +2518,6 @@ function setTextCoach(coach, btn) {
   renderTextSchedule();
 }
 
-let scheduleCoachFilter = 'all';
-let textCoachFilter = 'all';
 let schedView = 'calendar';
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
@@ -3072,7 +3172,7 @@ function deleteRecruit(name) {
   saveStore();
   if (activeRecruit === name) {
     activeRecruit = null;
-    if(activeTab==='roster'){const _wm=document.getElementById('welcomeMsg');if(_wm){_wm.style.display='';_wm.classList.remove('hidden');renderWelcomeRoster();}}
+    if(activeTab==='roster'){const _wm=document.getElementById('welcomeMsg');if(_wm){_wm.style.display='flex';_wm.classList.remove('hidden');renderWelcomeRoster();}}
     document.getElementById('guideContainer').style.display = 'none';
     const wt = document.getElementById('whisperToggle');
     if (wt) wt.style.display = 'none';
@@ -3155,14 +3255,13 @@ function reRender(name) {
 // ── Counts ────────────────────────────────────────────────────────────────────
 function updateCounts() {
   const all = getRecruits();
-  const _s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  _s('cntHot', all.filter(r=>r.hot).length);
-  _s('cntInterested', Object.entries(store.statuses).filter(([n,v])=>v==='interested'&&!store.deleted[n]).length);
-  _s('cntFollowup', Object.entries(store.statuses).filter(([n,v])=>v==='followup'&&!store.deleted[n]).length);
-  _s('cntGuides', all.filter(r=>isGuide(r)).length);
+  document.getElementById('cntHot').textContent = all.filter(r=>r.hot).length;
+  document.getElementById('cntInterested').textContent = Object.entries(store.statuses).filter(([n,v])=>v==='interested'&&!store.deleted[n]).length;
+  document.getElementById('cntFollowup').textContent = Object.entries(store.statuses).filter(([n,v])=>v==='followup'&&!store.deleted[n]).length;
+  document.getElementById('cntGuides').textContent = all.filter(r=>isGuide(r)).length;
   const committed = Object.entries(store.statuses).filter(([n,v])=>v==='committed'&&!store.deleted[n]).length;
   const pill = document.getElementById('cntCommitted');
-  if (pill) { pill.textContent = committed; (pill.closest('.stat-pill')||{style:{}}).style.display = committed>0?'':'none'; }
+  if (pill) { pill.textContent = committed; pill.closest('.stat-pill').style.display = committed>0?'':'none'; }
   // Unscheduled warning
   const unscheduled = all.filter(r => !store.callTimes[r.name] && !store.callDates[r.name]).length;
   const unschedEl = document.getElementById('cntUnscheduled');
@@ -3375,7 +3474,7 @@ function renderLeaderboard() {
   const total = COACHES.reduce((s,c) => s + counts[c].connected + counts[c].noanswer + counts[c].voicemail, 0);
   const totalAssigned = COACHES.reduce((s,c) => s + counts[c].assigned, 0);
 
-  (document.getElementById('lbRows')||{innerHTML:''}).innerHTML = COACHES.map(c => {
+  document.getElementById('lbRows').innerHTML = COACHES.map(c => {
     const d = counts[c];
     return `<div class="lb-row">
       <div class="lb-coach">${c}</div>
@@ -3390,9 +3489,9 @@ function renderLeaderboard() {
       </div>
     </div>`;
   }).join('');
-  updateNextCallSpot();
+  updateStripPanels();
   // Animate stat numbers after render
-requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
     document.querySelectorAll('#lbRows .lb-stat-n').forEach(el => {
       const target = parseInt(el.textContent) || 0;
       el.textContent = '0';
@@ -3899,59 +3998,6 @@ function importData(input) {
 }
 
 // ── Bulk Assign ───────────────────────────────────────────────────────────────
-
-// ── Helper navigation ─────────────────────────────────────────────
-function openInRoster(name) {
-  const rBtn = document.querySelector('.tab-btn');
-  switchTab('roster', rBtn);
-  setTimeout(() => selectRecruit(name), 80);
-}
-
-function filterByCaller(coach) {
-  const rosterBtn = document.querySelector('.tab-btn');
-  if (rosterBtn) switchTab('roster', rosterBtn);
-  activeFilter = 'caller_' + coach;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  renderList();
-  updateCounts();
-  // Show active filter badge on lb-panel
-  let badge = document.getElementById('lbFilterBadge');
-  if (!badge) {
-    badge = document.createElement('div');
-    badge.id = 'lbFilterBadge';
-    badge.style.cssText = 'margin-left:12px;padding:2px 10px;background:#172848;border:1px solid #b8001e;border-radius:10px;color:#ffffff;font-size:10px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0';
-    badge.onclick = () => { activeFilter='all'; const fa=document.getElementById('filterAll'); if(fa) fa.classList.add('active'); renderList(); updateCounts(); badge.remove(); };
-    document.getElementById('lbPanel').appendChild(badge);
-  }
-  badge.innerHTML = '&#128222; Showing: ' + coach + ' &nbsp;<span style="color:#ff8080;font-size:11px">✕ clear</span>';
-}
-
-// ── Schedule coach filter ─────────────────────────────────────────
-function setScheduleCoach(coach, btn) {
-  scheduleCoachFilter = coach;
-  document.querySelectorAll('.sched-coach-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  renderSchedule();
-}
-
-// ── Bulk assign shortcuts ─────────────────────────────────────────
-function bulkAssign(caller) {
-  if (bulkSelected.size === 0) { alert('Select recruits first.'); return; }
-  bulkSelected.forEach(name => { store.callers[name] = caller; });
-  saveStore();
-  bulkSelected.clear();
-  document.getElementById('bulkCount').textContent = '0 selected';
-  renderList();
-  renderLeaderboard();
-  updateCounts();
-}
-
-function bulkSelectAll() {
-  getRecruits().forEach(r => bulkSelected.add(r.name));
-  document.getElementById('bulkCount').textContent = bulkSelected.size + ' selected';
-  renderList();
-}
-
 function toggleBulkMode() {
   bulkMode = !bulkMode;
   bulkSelected.clear();
@@ -6550,6 +6596,20 @@ function typewriteEl(el, text, speed) {
   }, speed || 18);
 }
 
+const _origToggleQA = toggleQA;
+function toggleQA(idKey) {
+  _origToggleQA(idKey);
+  const body = document.getElementById('qaBody_' + idKey);
+  if (!body || body.style.display === 'none') return;
+  // Typewrite each textarea that has content
+  setTimeout(() => {
+    body.querySelectorAll('textarea.ep-input').forEach((ta, i) => {
+      const val = ta.value;
+      if (!val) return;
+      setTimeout(() => typewriteEl(ta, val, 14), i * 400);
+    });
+  }, 50);
+}
 
 // ── Expand morph ──────────────────────────────────────────────────
 function morphOpen(nm, cardEl) {
@@ -6739,9 +6799,35 @@ function updateNextCallSpot() {
 
 
 
+// ── Coach Progress Bars ───────────────────────────────────────────
+function updateCoachBars() {
+  const COACH_COLS = {OJ:'#f5c842',Leisa:'#ff3a3a',Jerome:'#4a90ff',Kelsey:'#2ecc71'};
+  const counts = {};
+  COACHES.forEach(coach => counts[coach] = {assigned:0,done:0});
+  getRecruits().forEach(r => {
+    const caller = store.callers[r.name];
+    if (!caller || !counts[caller]) return;
+    counts[caller].assigned++;
+    const notes = store.notes[r.name]||'';
+    if (notes.includes('✓ Connected')||notes.includes('✗ No Answer')||notes.includes('✉ Left Voicemail')) {
+      counts[caller].done++;
+    }
+  });
+  COACHES.forEach(coach => {
+    const bar = document.getElementById('cbar_'+coach);
+    const num = document.getElementById('cnum_'+coach);
+    if (!bar || !num) return;
+    const d = counts[coach];
+    const pct = d.assigned > 0 ? (d.done/d.assigned*100).toFixed(0) : 0;
+    bar.style.width = pct+'%';
+    num.textContent = d.done+'/'+d.assigned;
+    num.style.color = d.done === d.assigned && d.assigned > 0 ? '#4adf7a' : '#3a5a7c';
+  });
+}
 
 function updateStripPanels() {
   updateNextCallSpot();
+  updateCoachBars();
 }
 
 
@@ -6804,11 +6890,13 @@ function adjustFontSize(dir) {
   _fsLevel = Math.max(-2, Math.min(5, _fsLevel + dir));
   applyFontSize();
 setInterval(updateNextCallSpot, 1000);
+setInterval(updateCoachBars, 5000);
 }
 
 // Apply saved font size on load
 applyFontSize();
 setInterval(updateNextCallSpot, 1000);
+setInterval(updateCoachBars, 5000);
 </script>
 
 <!-- SYNC MODAL -->
