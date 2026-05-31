@@ -161,11 +161,12 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 /* tabRoster: column by default (welcome screen), row when recruit open */
 #tabRoster{display:flex;flex-direction:column;flex:1;min-height:0}
 #tabRoster.recruit-open{flex-direction:row}
-#tabRoster .welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
-#tabRoster.recruit-open .welcome{display:none}
+#tabRoster.recruit-open #welcomeMsg{display:none!important}
+#tabRoster.recruit-open #editPanel{display:flex!important}
+#tabRoster.recruit-open #guideContainer{display:flex!important}
 
-#editPanel{flex:0 0 45%;max-width:600px;min-width:300px;display:none;flex-direction:column;overflow-y:auto;background:var(--bg-card);border-right:1px solid var(--border-primary);height:100%}
-#editPanel.visible{display:flex}
+
+
 #guideContainer{display:none;flex:1;min-width:0;height:100%}
 #guideContainer.visible{display:block}
 
@@ -642,7 +643,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 
 /* ── 3-COLUMN RECRUIT VIEW ── */
 
-#editPanel{display:none;flex-direction:column;overflow-y:auto;height:100%;background:#07111f;border-right:1px solid #192e50}
+#editPanel{flex:0 0 45%;max-width:620px;min-width:280px;display:none;flex-direction:column;overflow-y:auto;height:100%;background:#07111f;border-right:1px solid #192e50}
 #editPanel.visible{display:flex}
 .ep-header{padding:16px 18px 12px;border-bottom:1px solid var(--border-primary);flex-shrink:0;background:var(--bg-panel);position:sticky;top:0;z-index:10}
 .ep-name{font-family:"Oswald",sans-serif;font-size:22px;font-weight:700;color:var(--text-primary);line-height:1.1;margin-bottom:2px}
@@ -942,39 +943,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
         </div>
           </div>
 
-          <!-- Coach progress bars -->
-          <div id="coachBarsPanel" style="background:#070f1e;border:1px solid #1a2e50;border-radius:6px;padding:7px 12px;flex:1;min-width:0">
-            <div style="font-size:7px;color:#3a5a7c;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">Call Progress</div>
-            <div id="coachBarsInner">
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                <div style="font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:#f5c842;min-width:48px">OJ</div>
-                <div style="flex:1;height:5px;background:#0d1e38;border-radius:3px;overflow:hidden">
-                  <div id="cbar_OJ" style="height:100%;width:0%;background:#f5c842;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)"></div>
-                </div>
-                <div id="cnum_OJ" style="font-size:10px;color:#3a5a7c;min-width:40px;text-align:right">0/0</div>
-              </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                <div style="font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:#ff3a3a;min-width:48px">Leisa</div>
-                <div style="flex:1;height:5px;background:#0d1e38;border-radius:3px;overflow:hidden">
-                  <div id="cbar_Leisa" style="height:100%;width:0%;background:#ff3a3a;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)"></div>
-                </div>
-                <div id="cnum_Leisa" style="font-size:10px;color:#3a5a7c;min-width:40px;text-align:right">0/0</div>
-              </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                <div style="font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:#4a90ff;min-width:48px">Jerome</div>
-                <div style="flex:1;height:5px;background:#0d1e38;border-radius:3px;overflow:hidden">
-                  <div id="cbar_Jerome" style="height:100%;width:0%;background:#4a90ff;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)"></div>
-                </div>
-                <div id="cnum_Jerome" style="font-size:10px;color:#3a5a7c;min-width:40px;text-align:right">0/0</div>
-              </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                <div style="font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:#2ecc71;min-width:48px">Kelsey</div>
-                <div style="flex:1;height:5px;background:#0d1e38;border-radius:3px;overflow:hidden">
-                  <div id="cbar_Kelsey" style="height:100%;width:0%;background:#2ecc71;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)"></div>
-                </div>
-                <div id="cnum_Kelsey" style="font-size:10px;color:#3a5a7c;min-width:40px;text-align:right">0/0</div>
-              </div>
-            </div>
-          </div>
 
-        </div>
         </div>
 
         <!-- Row 2: Search + Add + Bulk -->
@@ -1984,12 +1953,11 @@ function renderList() {
     });
   }
 
-  if (!activeRecruit) renderWelcomeRoster();
   const _rl = document.getElementById('recruitList');
   if (_rl) _rl.innerHTML = html || '<div style="padding:20px;color:#1e3050;text-align:center;font-size:13px">No recruits match</div>';
   updateCounts();
   initDragRank();
-  renderWelcomeRoster();
+  if (!activeRecruit) renderWelcomeRoster();
 }
 
 // ── Select recruit → show PDF ─────────────────────────────────────────────────
@@ -2422,40 +2390,52 @@ function setCallDate(name, val) {
 // ─────────────────────────────────────────────────────────────────
 function closeGuide() {
   activeRecruit = null;
-  document.getElementById('tabRoster').classList.remove('recruit-open');
-  // Clear edit panel
-  const ep = document.getElementById('editPanel');
-  if (ep) { ep.classList.remove('visible'); ep.innerHTML = ''; ep.style.display = 'none'; }
-  // Clear guide
-  const gc = document.getElementById('guideContainer');
-  if (gc) { gc.classList.remove('visible'); gc.innerHTML = ''; gc.style.display = 'none'; }
-  // Show welcome only if on roster tab
-  if (activeTab === 'roster') {
-    const wm = document.getElementById('welcomeMsg');
-    if (wm) { wm.style.display = 'flex'; wm.classList.remove('hidden'); }
-  }
-  renderList();
+
+  const tabR       = document.getElementById('tabRoster');
+  const welcomeMsg = document.getElementById('welcomeMsg');
+  const editPanel  = document.getElementById('editPanel');
+  const panelRes   = document.getElementById('panelResizer');
+  const guideC     = document.getElementById('guideContainer');
+
+  // Reset to column layout
+  if (tabR)       { tabR.style.flexDirection = 'column'; tabR.classList.remove('recruit-open'); }
+  if (welcomeMsg) { welcomeMsg.style.display = 'flex'; welcomeMsg.style.flex = '1'; }
+  if (editPanel)  { editPanel.style.display = 'none'; editPanel.innerHTML = ''; }
+  if (panelRes)   { panelRes.style.display = 'none'; }
+  if (guideC)     { guideC.style.display = 'none'; guideC.innerHTML = ''; }
+
   const wt = document.getElementById('whisperToggle');
   if (wt) wt.style.display = 'none';
-  const wp = document.getElementById('whisperPanel');
-  if (wp && wp.classList.contains('open')) toggleWhisper();
-  if (typeof stopHeartbeat === 'function') stopHeartbeat();
+
+  if (activeTab === 'roster') renderWelcomeRoster();
+  renderList();
 }
+
 
 function selectRecruit(name) {
   activeRecruit = name;
 
-  // Close any flipped cards
-  document.querySelectorAll('.wr-card.flipped').forEach(el => el.classList.remove('flipped'));
-  // Switch tabRoster to row layout
-  document.getElementById('tabRoster').classList.add('recruit-open');
+  // Snap flipped cards back
+  document.querySelectorAll('.wr-card.flipped').forEach(el => {
+    el.style.transition = 'none';
+    el.classList.remove('flipped');
+    requestAnimationFrame(() => { el.style.transition = ''; });
+  });
 
-  // Hide welcome
-  const wm = document.getElementById('welcomeMsg');
-  if (wm) { wm.style.display = 'none'; wm.classList.add('hidden'); }
+  const tabR       = document.getElementById('tabRoster');
+  const welcomeMsg = document.getElementById('welcomeMsg');
+  const editPanel  = document.getElementById('editPanel');
+  const panelRes   = document.getElementById('panelResizer');
+  const guideC     = document.getElementById('guideContainer');
 
-  renderList();
-  if (activeTab === 'texts') renderTextSchedule();
+  // Switch to row layout: hide welcome grid, show edit+guide side by side
+  if (tabR)       { tabR.style.display = 'flex'; tabR.style.flexDirection = 'row'; }
+  if (welcomeMsg) { welcomeMsg.style.display = 'none'; }
+  if (editPanel)  { editPanel.style.display = 'flex'; editPanel.style.flex = '0 0 45%'; editPanel.style.maxWidth = '620px'; editPanel.style.minWidth = '280px'; editPanel.style.height = '100%'; }
+  if (panelRes)   { panelRes.style.display = 'block'; }
+  if (guideC)     { guideC.style.display = 'flex'; guideC.style.flex = '1'; guideC.style.height = '100%'; }
+
+  tabR && tabR.classList.add('recruit-open');
 
   // Build edit panel
   buildEditPanel(name);
@@ -2464,26 +2444,26 @@ function selectRecruit(name) {
   const r = getRecruits().find(x => x.name === name);
   if (!r) return;
   const url = getBlobURL(name);
-  const gc = document.getElementById('guideContainer');
-  gc.style.display = 'block';
-  gc.classList.add('visible');
-  gc.style.height = '100%';
-  gc.innerHTML = url
-    ? `<iframe src="${url}" style="width:100%;height:100%;border:none;display:block"></iframe>`
-    : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#1e3050;flex-direction:column;gap:10px"><div style="font-size:14px">No PDF guide yet</div></div>`;
+  if (guideC) {
+    guideC.innerHTML = url
+      ? `<iframe src="${url}" style="width:100%;height:100%;border:none;display:block"></iframe>`
+      : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#1e3050;flex-direction:column;gap:10px"><div style="font-size:48px">📋</div><div style="font-size:14px">No PDF guide yet for ${r.name}</div><div style="font-size:11px;color:#1a3a50">Upload via Edit Info → Custom PDF</div></div>`;
+  }
 
   const wt = document.getElementById('whisperToggle');
   if (wt) wt.style.display = 'flex';
 }
+
 
 // ── Schedule view ─────────────────────────────────────────────────────────────
 let scheduleCoachFilter = 'all';
 let textCoachFilter = 'all';
 
 function openInRoster(name) {
+  activeRecruit = name; // set BEFORE switchTab so it won't show welcomeMsg
   const rBtn = document.querySelector('.tab-btn');
   switchTab('roster', rBtn);
-  setTimeout(() => selectRecruit(name), 80);
+  selectRecruit(name); // call synchronously, no setTimeout
 }
 function filterByCaller(coach) {
   const rosterBtn = document.querySelector('.tab-btn');
@@ -3172,7 +3152,7 @@ function deleteRecruit(name) {
   saveStore();
   if (activeRecruit === name) {
     activeRecruit = null;
-    if(activeTab==='roster'){const _wm=document.getElementById('welcomeMsg');if(_wm){_wm.style.display='flex';_wm.classList.remove('hidden');renderWelcomeRoster();}}
+    if(activeTab==='roster'){const _wm=document.getElementById('welcomeMsg');if(_wm){_wm.style.display='';_wm.classList.remove('hidden');renderWelcomeRoster();}}
     document.getElementById('guideContainer').style.display = 'none';
     const wt = document.getElementById('whisperToggle');
     if (wt) wt.style.display = 'none';
@@ -3489,7 +3469,7 @@ function renderLeaderboard() {
       </div>
     </div>`;
   }).join('');
-  updateStripPanels();
+  updateNextCallSpot();
   // Animate stat numbers after render
   requestAnimationFrame(() => {
     document.querySelectorAll('#lbRows .lb-stat-n').forEach(el => {
@@ -6799,35 +6779,9 @@ function updateNextCallSpot() {
 
 
 
-// ── Coach Progress Bars ───────────────────────────────────────────
-function updateCoachBars() {
-  const COACH_COLS = {OJ:'#f5c842',Leisa:'#ff3a3a',Jerome:'#4a90ff',Kelsey:'#2ecc71'};
-  const counts = {};
-  COACHES.forEach(coach => counts[coach] = {assigned:0,done:0});
-  getRecruits().forEach(r => {
-    const caller = store.callers[r.name];
-    if (!caller || !counts[caller]) return;
-    counts[caller].assigned++;
-    const notes = store.notes[r.name]||'';
-    if (notes.includes('✓ Connected')||notes.includes('✗ No Answer')||notes.includes('✉ Left Voicemail')) {
-      counts[caller].done++;
-    }
-  });
-  COACHES.forEach(coach => {
-    const bar = document.getElementById('cbar_'+coach);
-    const num = document.getElementById('cnum_'+coach);
-    if (!bar || !num) return;
-    const d = counts[coach];
-    const pct = d.assigned > 0 ? (d.done/d.assigned*100).toFixed(0) : 0;
-    bar.style.width = pct+'%';
-    num.textContent = d.done+'/'+d.assigned;
-    num.style.color = d.done === d.assigned && d.assigned > 0 ? '#4adf7a' : '#3a5a7c';
-  });
-}
 
 function updateStripPanels() {
   updateNextCallSpot();
-  updateCoachBars();
 }
 
 
@@ -6890,13 +6844,11 @@ function adjustFontSize(dir) {
   _fsLevel = Math.max(-2, Math.min(5, _fsLevel + dir));
   applyFontSize();
 setInterval(updateNextCallSpot, 1000);
-setInterval(updateCoachBars, 5000);
 }
 
 // Apply saved font size on load
 applyFontSize();
 setInterval(updateNextCallSpot, 1000);
-setInterval(updateCoachBars, 5000);
 </script>
 
 <!-- SYNC MODAL -->
