@@ -157,7 +157,7 @@ header{background:var(--header-bg);border-bottom:3px solid var(--header-border);
 .main.rp-fullwidth{grid-template-columns:1fr}
 .main.rp-fullwidth .sidebar{display:none}
 .sidebar{background:var(--sidebar-bg);border-right:1px solid var(--border-primary);display:flex;flex-direction:column;overflow:hidden;min-height:0;position:relative;z-index:10}
-.content-area{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0;justify-content:flex-start;align-items:stretch;height:100%}
+.content-area{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0;justify-content:flex-start;align-items:stretch}
 /* tabRoster: column by default (welcome screen), row when recruit open */
 #tabRoster{display:flex;flex-direction:column;flex:1;min-height:0}
 #tabRoster.recruit-open{flex-direction:row}
@@ -808,7 +808,6 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">FRESNO<br>STATE</div>
   <div class="hdr-divider"></div>
@@ -1244,7 +1243,8 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 <!-- Confetti -->
 <canvas id="confettiCanvas"></canvas>
 <div class="confetti-name-overlay" id="confettiOverlay">
-  <div class="confetti-bigname" id="confettiBigName"></div>
+  <div class="confe
+tti-bigname" id="confettiBigName"></div>
   <div class="confetti-subtext">&#127881; COMMITTED TO FRESNO STATE &#127881;</div>
   <button class="confetti-close" onclick="stopConfetti()">&#10005; Continue</button>
 </div>
@@ -1597,6 +1597,7 @@ function switchTab(tab, btn) {
   if (tab==='wall')        renderWall();
   if (tab==='rosterplan')  renderRosterPlan();
   if (tab!=='wall')        stopGalaxy();
+  if (tab!=='wall')        stopGalaxy();
 }
 
 // ── Text Schedule View ────────────────────────────────────────────────────────
@@ -1840,7 +1841,7 @@ function wrFlip(e, card, nm) {
   }
 }
 function renderList() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
+  const q = (document.getElementById('searchInput')||{value:''}).value.toLowerCase();
   const groups = {};
   Object.keys(POS_LABELS).forEach(k => groups[k] = []);
 
@@ -2390,106 +2391,23 @@ function setCallDate(name, val) {
 // ─────────────────────────────────────────────────────────────────
 function closeGuide() {
   activeRecruit = null;
-
-  const tabR       = document.getElementById('tabRoster');
-  const welcomeMsg = document.getElementById('welcomeMsg');
-  const editPanel  = document.getElementById('editPanel');
-  const panelRes   = document.getElementById('panelResizer');
-  const guideC     = document.getElementById('guideContainer');
-
-  // Reset to column layout
-  if (tabR)       { tabR.style.flexDirection = 'column'; tabR.classList.remove('recruit-open'); }
-  if (welcomeMsg) { welcomeMsg.style.display = 'flex'; welcomeMsg.style.flex = '1'; }
-  if (editPanel)  { editPanel.style.display = 'none'; editPanel.innerHTML = ''; }
-  if (panelRes)   { panelRes.style.display = 'none'; }
-  if (guideC)     { guideC.style.display = 'none'; guideC.innerHTML = ''; }
-
+  const wm = document.getElementById('welcomeMsg');
+  const ep = document.getElementById('editPanel');
+  const gc = document.getElementById('guideContainer');
+  const pr = document.getElementById('panelResizer');
+  const tr = document.getElementById('tabRoster');
+  if (wm) { wm.style.display = ''; }
+  if (ep) { ep.classList.remove('visible'); ep.style.display = 'none'; ep.innerHTML = ''; }
+  if (gc) { gc.classList.remove('visible'); gc.style.display = 'none'; gc.innerHTML = ''; }
+  if (pr) { pr.style.display = 'none'; }
+  if (tr) { tr.classList.remove('recruit-open'); tr.style.flexDirection = ''; }
   const wt = document.getElementById('whisperToggle');
   if (wt) wt.style.display = 'none';
-
   if (activeTab === 'roster') renderWelcomeRoster();
   renderList();
 }
 
 
-function selectRecruit(name) {
-  activeRecruit = name;
-
-  // Snap flipped cards back
-  document.querySelectorAll('.wr-card.flipped').forEach(el => {
-    el.style.transition = 'none';
-    el.classList.remove('flipped');
-    requestAnimationFrame(() => { el.style.transition = ''; });
-  });
-
-  const tabR       = document.getElementById('tabRoster');
-  const welcomeMsg = document.getElementById('welcomeMsg');
-  const editPanel  = document.getElementById('editPanel');
-  const panelRes   = document.getElementById('panelResizer');
-  const guideC     = document.getElementById('guideContainer');
-
-  // Switch to row layout: hide welcome grid, show edit+guide side by side
-  if (tabR)       { tabR.style.display = 'flex'; tabR.style.flexDirection = 'row'; }
-  if (welcomeMsg) { welcomeMsg.style.display = 'none'; }
-  if (editPanel)  { editPanel.style.display = 'flex'; editPanel.style.flex = '0 0 45%'; editPanel.style.maxWidth = '620px'; editPanel.style.minWidth = '280px'; editPanel.style.height = '100%'; }
-  if (panelRes)   { panelRes.style.display = 'block'; }
-  if (guideC)     { guideC.style.display = 'flex'; guideC.style.flex = '1'; guideC.style.height = '100%'; }
-
-  tabR && tabR.classList.add('recruit-open');
-
-  // Build edit panel
-  buildEditPanel(name);
-
-  // Load PDF
-  const r = getRecruits().find(x => x.name === name);
-  if (!r) return;
-  const url = getBlobURL(name);
-  if (guideC) {
-    guideC.innerHTML = url
-      ? `<iframe src="${url}" style="width:100%;height:100%;border:none;display:block"></iframe>`
-      : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#1e3050;flex-direction:column;gap:10px"><div style="font-size:48px">📋</div><div style="font-size:14px">No PDF guide yet for ${r.name}</div><div style="font-size:11px;color:#1a3a50">Upload via Edit Info → Custom PDF</div></div>`;
-  }
-
-  const wt = document.getElementById('whisperToggle');
-  if (wt) wt.style.display = 'flex';
-}
-
-
-// ── Schedule view ─────────────────────────────────────────────────────────────
-let scheduleCoachFilter = 'all';
-let textCoachFilter = 'all';
-
-function openInRoster(name) {
-  activeRecruit = name; // set BEFORE switchTab so it won't show welcomeMsg
-  const rBtn = document.querySelector('.tab-btn');
-  switchTab('roster', rBtn);
-  selectRecruit(name); // call synchronously, no setTimeout
-}
-function filterByCaller(coach) {
-  const rosterBtn = document.querySelector('.tab-btn');
-  if (rosterBtn) switchTab('roster', rosterBtn);
-  activeFilter = 'caller_' + coach;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  renderList();
-  updateCounts();
-  // Show active filter badge on lb-panel
-  let badge = document.getElementById('lbFilterBadge');
-  if (!badge) {
-    badge = document.createElement('div');
-    badge.id = 'lbFilterBadge';
-    badge.style.cssText = 'margin-left:12px;padding:2px 10px;background:#172848;border:1px solid #b8001e;border-radius:10px;color:#ffffff;font-size:10px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0';
-    badge.onclick = () => { activeFilter='all'; document.getElementById('filterAll')&&document.getElementById('filterAll').classList.add('active'); renderList();updateCounts(); badge.remove(); };
-    document.getElementById('lbPanel').appendChild(badge);
-  }
-  badge.innerHTML = '&#128222; Showing: ' + coach + ' &nbsp;<span style="color:#ff8080;font-size:11px">✕ clear</span>';
-}
-
-function setScheduleCoach(coach, btn) {
-  scheduleCoachFilter = coach;
-  document.querySelectorAll('.sched-coach-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderSchedule();
-}
 
 function setTextCoach(coach, btn) {
   textCoachFilter = coach;
@@ -2498,6 +2416,8 @@ function setTextCoach(coach, btn) {
   renderTextSchedule();
 }
 
+let scheduleCoachFilter = 'all';
+let textCoachFilter = 'all';
 let schedView = 'calendar';
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
@@ -3235,13 +3155,14 @@ function reRender(name) {
 // ── Counts ────────────────────────────────────────────────────────────────────
 function updateCounts() {
   const all = getRecruits();
-  document.getElementById('cntHot').textContent = all.filter(r=>r.hot).length;
-  document.getElementById('cntInterested').textContent = Object.entries(store.statuses).filter(([n,v])=>v==='interested'&&!store.deleted[n]).length;
-  document.getElementById('cntFollowup').textContent = Object.entries(store.statuses).filter(([n,v])=>v==='followup'&&!store.deleted[n]).length;
-  document.getElementById('cntGuides').textContent = all.filter(r=>isGuide(r)).length;
+  const _s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  _s('cntHot', all.filter(r=>r.hot).length);
+  _s('cntInterested', Object.entries(store.statuses).filter(([n,v])=>v==='interested'&&!store.deleted[n]).length);
+  _s('cntFollowup', Object.entries(store.statuses).filter(([n,v])=>v==='followup'&&!store.deleted[n]).length);
+  _s('cntGuides', all.filter(r=>isGuide(r)).length);
   const committed = Object.entries(store.statuses).filter(([n,v])=>v==='committed'&&!store.deleted[n]).length;
   const pill = document.getElementById('cntCommitted');
-  if (pill) { pill.textContent = committed; pill.closest('.stat-pill').style.display = committed>0?'':'none'; }
+  if (pill) { pill.textContent = committed; (pill.closest('.stat-pill')||{style:{}}).style.display = committed>0?'':'none'; }
   // Unscheduled warning
   const unscheduled = all.filter(r => !store.callTimes[r.name] && !store.callDates[r.name]).length;
   const unschedEl = document.getElementById('cntUnscheduled');
@@ -3454,7 +3375,7 @@ function renderLeaderboard() {
   const total = COACHES.reduce((s,c) => s + counts[c].connected + counts[c].noanswer + counts[c].voicemail, 0);
   const totalAssigned = COACHES.reduce((s,c) => s + counts[c].assigned, 0);
 
-  document.getElementById('lbRows').innerHTML = COACHES.map(c => {
+  (document.getElementById('lbRows')||{innerHTML:''}).innerHTML = COACHES.map(c => {
     const d = counts[c];
     return `<div class="lb-row">
       <div class="lb-coach">${c}</div>
@@ -3471,7 +3392,7 @@ function renderLeaderboard() {
   }).join('');
   updateNextCallSpot();
   // Animate stat numbers after render
-  requestAnimationFrame(() => {
+requestAnimationFrame(() => {
     document.querySelectorAll('#lbRows .lb-stat-n').forEach(el => {
       const target = parseInt(el.textContent) || 0;
       el.textContent = '0';
@@ -3978,6 +3899,59 @@ function importData(input) {
 }
 
 // ── Bulk Assign ───────────────────────────────────────────────────────────────
+
+// ── Helper navigation ─────────────────────────────────────────────
+function openInRoster(name) {
+  const rBtn = document.querySelector('.tab-btn');
+  switchTab('roster', rBtn);
+  setTimeout(() => selectRecruit(name), 80);
+}
+
+function filterByCaller(coach) {
+  const rosterBtn = document.querySelector('.tab-btn');
+  if (rosterBtn) switchTab('roster', rosterBtn);
+  activeFilter = 'caller_' + coach;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  renderList();
+  updateCounts();
+  // Show active filter badge on lb-panel
+  let badge = document.getElementById('lbFilterBadge');
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'lbFilterBadge';
+    badge.style.cssText = 'margin-left:12px;padding:2px 10px;background:#172848;border:1px solid #b8001e;border-radius:10px;color:#ffffff;font-size:10px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0';
+    badge.onclick = () => { activeFilter='all'; const fa=document.getElementById('filterAll'); if(fa) fa.classList.add('active'); renderList(); updateCounts(); badge.remove(); };
+    document.getElementById('lbPanel').appendChild(badge);
+  }
+  badge.innerHTML = '&#128222; Showing: ' + coach + ' &nbsp;<span style="color:#ff8080;font-size:11px">✕ clear</span>';
+}
+
+// ── Schedule coach filter ─────────────────────────────────────────
+function setScheduleCoach(coach, btn) {
+  scheduleCoachFilter = coach;
+  document.querySelectorAll('.sched-coach-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderSchedule();
+}
+
+// ── Bulk assign shortcuts ─────────────────────────────────────────
+function bulkAssign(caller) {
+  if (bulkSelected.size === 0) { alert('Select recruits first.'); return; }
+  bulkSelected.forEach(name => { store.callers[name] = caller; });
+  saveStore();
+  bulkSelected.clear();
+  document.getElementById('bulkCount').textContent = '0 selected';
+  renderList();
+  renderLeaderboard();
+  updateCounts();
+}
+
+function bulkSelectAll() {
+  getRecruits().forEach(r => bulkSelected.add(r.name));
+  document.getElementById('bulkCount').textContent = bulkSelected.size + ' selected';
+  renderList();
+}
+
 function toggleBulkMode() {
   bulkMode = !bulkMode;
   bulkSelected.clear();
@@ -6576,20 +6550,6 @@ function typewriteEl(el, text, speed) {
   }, speed || 18);
 }
 
-const _origToggleQA = toggleQA;
-function toggleQA(idKey) {
-  _origToggleQA(idKey);
-  const body = document.getElementById('qaBody_' + idKey);
-  if (!body || body.style.display === 'none') return;
-  // Typewrite each textarea that has content
-  setTimeout(() => {
-    body.querySelectorAll('textarea.ep-input').forEach((ta, i) => {
-      const val = ta.value;
-      if (!val) return;
-      setTimeout(() => typewriteEl(ta, val, 14), i * 400);
-    });
-  }, 50);
-}
 
 // ── Expand morph ──────────────────────────────────────────────────
 function morphOpen(nm, cardEl) {
