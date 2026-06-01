@@ -876,9 +876,25 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
       <!-- Countdown strip -->
       <div style="flex-shrink:0;background:rgba(0,0,0,.2);border-bottom:1px solid #0f1e38;padding:12px 24px 10px">
 
-        <!-- Row 1: Rings centered -->
-        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:10px">
-          <div style="font-family:'Oswald',sans-serif;font-size:9px;color:#b8001e;letter-spacing:2px;margin-bottom:5px">JUNE 15 · 9PM PST</div>
+        <!-- Row 1: Next Call | Rings | Coach Bars — all inline -->
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
+
+          <!-- Next call spotlight -->
+          <div id="nextCallSpot" style="background:#070f1e;border:1px solid #1a2e50;border-radius:6px;padding:7px 12px;display:flex;align-items:center;gap:10px;flex:1.2;min-width:0">
+            <div style="font-family:'Oswald',sans-serif;font-size:8px;color:#3a5a7c;letter-spacing:1.5px;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap">▶ UP NEXT</div>
+            <div style="flex:1;min-width:0">
+              <div id="ncName" style="font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+              <div id="ncDetail" style="font-size:10px;color:#5a8ab0;margin-top:2px">No calls scheduled</div>
+            </div>
+            <div style="text-align:center;flex-shrink:0">
+              <div id="ncTimer" style="font-family:'Oswald',monospace;font-size:20px;font-weight:700;color:#f5c842;letter-spacing:1px;line-height:1">--:--</div>
+              <div style="font-size:7px;color:#3a5a7c;letter-spacing:1px;margin-top:2px">TO CALL</div>
+            </div>
+          </div>
+
+          <!-- Rings centered -->
+          <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">
+            <div style="font-family:'Oswald',sans-serif;font-size:9px;color:#b8001e;letter-spacing:2px;margin-bottom:5px">JUNE 15 · 9PM PST</div>
           <div style="display:flex;gap:8px" id="ringClocks">
             <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
               <svg width="54" height="54" viewBox="0 0 72 72" style="transform:rotate(-90deg)"><circle cx="36" cy="36" r="30" fill="none" stroke="#0d1e38" stroke-width="5"/><circle id="cdRingD" cx="36" cy="36" r="30" fill="none" stroke="#b8001e" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px #b8001e88)"/><text id="cdRingD_num" x="36" y="36" text-anchor="middle" dominant-baseline="central" font-family="Oswald,sans-serif" font-size="18" font-weight="700" fill="#fff" style="transform:rotate(90deg);transform-origin:36px 36px">--</text></svg>
@@ -898,21 +914,6 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
             </div>
           </div>
         </div>
-
-        <!-- Row 1b: Next Call + Coach Bars inline -->
-        <div style="display:flex;gap:12px;margin-bottom:8px">
-
-          <!-- Next call spotlight -->
-          <div id="nextCallSpot" style="background:#070f1e;border:1px solid #1a2e50;border-radius:6px;padding:7px 12px;display:flex;align-items:center;gap:10px;flex:1.2;min-width:0">
-            <div style="font-family:'Oswald',sans-serif;font-size:8px;color:#3a5a7c;letter-spacing:1.5px;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap">▶ UP NEXT</div>
-            <div style="flex:1;min-width:0">
-              <div id="ncName" style="font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
-              <div id="ncDetail" style="font-size:10px;color:#5a8ab0;margin-top:2px">No calls scheduled</div>
-            </div>
-            <div style="text-align:center;flex-shrink:0">
-              <div id="ncTimer" style="font-family:'Oswald',monospace;font-size:20px;font-weight:700;color:#f5c842;letter-spacing:1px;line-height:1">--:--</div>
-              <div style="font-size:7px;color:#3a5a7c;letter-spacing:1px;margin-top:2px">TO CALL</div>
-            </div>
           </div>
 
           <!-- Coach progress bars -->
@@ -949,7 +950,7 @@ canvas#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-even
 
         </div>
 
-        <!-- Row 2: Search + Add + Bulk -->
+                <!-- Row 2: Search + Add + Bulk -->
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
           <div style="position:relative;flex:1">
             <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#3a5a7c;font-size:13px">🔍</span>
@@ -6408,6 +6409,10 @@ function showOutcomeBar(name) { /* outcomes now inline in dropdown */ }
 function hideOutcomeBar() { /* outcomes now inline in dropdown */ }
 
 function logOutcome_named(name, type) {
+  // Decode any HTML entities in name
+  if (!name) return;
+  const r = getRecruits().find(x => x.name === name || esc(x.name) === name || q2(x.name) === name);
+  if (r) name = r.name; // normalize to exact name
   const now = new Date();
   const timeStr = now.toLocaleTimeString('en-US', {
     timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit', hour12: true
@@ -6418,6 +6423,23 @@ function logOutcome_named(name, type) {
   const existing = store.notes[name] || '';
   store.notes[name] = existing ? existing + '\n' + entry : entry;
   saveStore();
+  // Immediately refresh note log in edit panel
+  const idKey2 = esc(name);
+  const noteLog = document.getElementById('epnlog_' + idKey2);
+  if (noteLog) noteLog.innerHTML = renderNoteLog(name, idKey2);
+  // Highlight the clicked button
+  document.querySelectorAll('.ep-outcome-btn').forEach(b => {
+    b.style.transform = '';
+    b.style.opacity = '0.5';
+  });
+  const activeBtn = document.querySelector('.ep-outcome-btn.' + type);
+  if (activeBtn) {
+    activeBtn.style.opacity = '1';
+    activeBtn.style.transform = 'scale(1.04)';
+    const origBg = activeBtn.style.background;
+    activeBtn.style.background = type==='connected' ? 'rgba(74,223,122,.25)' : type==='voicemail' ? 'rgba(245,200,66,.2)' : 'rgba(192,128,255,.2)';
+    setTimeout(() => { activeBtn.style.background = origBg; activeBtn.style.transform = ''; document.querySelectorAll('.ep-outcome-btn').forEach(b => b.style.opacity='1'); }, 800);
+  }
   // Update notes textarea if visible
   const idKey = esc(name);
   const ta = document.querySelector(`#item_${idKey} .ctrl-notes`);
